@@ -171,6 +171,8 @@ Menu.setApplicationMenu(menu);
 	  hasFrame = false;
 	}
 	win = new BrowserWindow({
+		nodeIntegration: true,
+		contextIsolation: false,
 		x: mainWindowState.x,
 		y: mainWindowState.y,
 		width: mainWindowState.width,
@@ -187,7 +189,7 @@ Menu.setApplicationMenu(menu);
 		//fullscreenable: false,
 		backgroundColor: '#FFFFFF', 
 		//transparent: true,
-		webPreferences: { experimentalFeatures: false, nodeIntegration: true}
+		webPreferences: { experimentalFeatures: false, nodeIntegration: true, contextIsolation: false,}
 	});
 	
 	mainWindowState.manage(win);
@@ -265,6 +267,7 @@ Menu.setApplicationMenu(menu);
   // initialization and is ready to create browser windows.
   // Some APIs can only be used after this event occurs.
   app.on('ready', createWindow)
+  
   
   // Quit when all windows are closed.
   app.on('window-all-closed', () => {

@@ -20,9 +20,8 @@ SOFTWARE.*/
 
 var inElectron = false;
 var debug = true;
-
-import { ipcRenderer as ipc, shell, remote } from 'electron';
-var {Menu, MenuItem} = remote;
+const { ipcRenderer, shell, remote } = require('electron');
+const ipc = ipcRenderer;
 inElectron = true;
 
 var darkAppearance = false;
