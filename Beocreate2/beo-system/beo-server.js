@@ -20,28 +20,31 @@ SOFTWARE.*/
 
 // Set NODE_PATH first, so that the buildroot-installed modules are found:
 process.env.NODE_PATH = "/usr/lib/node_modules/";
-require('module').Module._initPaths();
+import Module from 'module';
+Module._initPaths();
 
 process.on('warning', e => console.warn(e.stack));
 
 // DEPENDENCIES
 
-var http = require('http');
-var https = require('https');
-var express = require('express');
-var fs = require('fs');
-var exec = require("child_process").exec;
-var EventEmitter = require('eventemitter3');
-var aplay = require('aplay');
-var _ = require('underscore');
+import http from 'http';
+import https from 'https';
+import express from 'express';
+import fs from 'fs';
+import { exec } from 'child_process';
+import EventEmitter from 'eventemitter3';
+import aplay from 'aplay';
+import _ from 'underscore';
+
+import beoCom from '../beocreate_essentials/communication';
+import piSystem from '../beocreate_essentials/pi_system_tools';
 
 // Beocreate Essentials
-var beoCom = require("../beocreate_essentials/communication")();
-var piSystem = require('../beocreate_essentials/pi_system_tools');
+var beoCom = beoCom();
 
+import { version as systemVersion } from './package.json';
 // END DEPENDENCIES
 
-var systemVersion = require("./package.json").version;
 var defaultSystemConfiguration = {
 	"cardType": "Beocreate 4-Channel Amplifier",
 	"cardFeatures": [],
@@ -383,9 +386,9 @@ expressServer.use("/views", express.static(dataDirectory+"/beo-views", {etag: et
 expressServer.use("/views", express.static(systemDirectory+"/../beo-views", {etag: etags})); // For system appearances.
 if (customisations) expressServer.use("/custom", express.static(systemConfiguration.customisationPath+"/assets", {etag: etags})); // For customisations.
 expressServer.use("/misc", express.static(systemDirectory+"/../misc", {etag: etags})); // For other files.
-expressServer.get("/", function (req, res) {
+expressServer.get("/", async function (req, res) {
 	if (debugMode) console.log("Loading user interface for default appearance...");
-	ui = loadAppearance(systemConfiguration.defaultAppearance);
+	ui = await loadAppearance(systemConfiguration.defaultAppearance);
 	if (ui) {
 		res.status(200);
 		res.send(ui);
@@ -394,10 +397,10 @@ expressServer.get("/", function (req, res) {
 		res.sendFile(systemDirectory+"/common/appearance-not-found.html");
 	}
 });
-expressServer.get("/view/:appearance", function (req, res) {
+expressServer.get("/view/:appearance", async function (req, res) {
 	// Serve an alternate appearance.
 	if (debugMode) console.log("Loading user interface for appearance '"+req.params.appearance+"'...");
-	ui = loadAppearance(req.params.appearance);
+	ui = await loadAppearance(req.params.appearance);
 	if (ui) {
 		res.status(200);
 		res.send(ui);
@@ -547,7 +550,7 @@ beoBus.on('dsp', function(event) {
 
 
 
-function loadAllServerExtensions() {
+async function loadAllServerExtensions() {
 	
 	menuName = "menu";
 		
@@ -579,19 +582,18 @@ function loadAllServerExtensions() {
 	
 	// Load all extensions.
 	for (extensionName in masterList) {
-		loadExtensionWithPath(extensionName, masterList[extensionName].userExtension, menuName, "extensions");
+		await loadExtensionWithPath(extensionName, masterList[extensionName].userExtension, menuName, "extensions");
 	}
 	
 	extensionsLoaded = true;
 }
 
 
-function loadExtensionWithPath(extensionName, userExtension, menuName, basePath) {
-	
+async function loadExtensionWithPath(extensionName, userExtension, menuName, basePath) {
 	// Mode 0: Load only server-side code.
 	// Mode 1: Load UI for this appearance.
 	
-	shouldLoad = shouldLoadExtension(0, extensionName, userExtension, menuName);
+	shouldLoad = await shouldLoadExtension(0, extensionName, userExtension, menuName);
 	
 	if (!shouldLoad) return null;
 	
@@ -602,7 +604,7 @@ function loadExtensionWithPath(extensionName, userExtension, menuName, basePath)
 	// Load the Node code for this extension.
 	
 	try {
-		extensions[extensionName] = require(fullPath);
+		extensions[extensionName] = await import(fullPath);
 		extensionsList[extensionName].loadedSuccessfully = true;
 		extensionLoadedSuccessfully = true;
 	}
@@ -615,7 +617,7 @@ function loadExtensionWithPath(extensionName, userExtension, menuName, basePath)
 }
 
 
-function shouldLoadExtension(mode, extensionName, userExtension, menuName = null) {
+async function shouldLoadExtension(mode, extensionName, userExtension, menuName = null) {
 	
 	// Mode 0: Load check for server-side code.
 	// Mode 1: Check for UI existence.
@@ -654,10 +656,10 @@ function shouldLoadExtension(mode, extensionName, userExtension, menuName = null
 	];
 	
 	try {
-		packageJSON = require(paths[0]+"/package.json");
+		packageJSON = await import(paths[0]+"/package.json");
 	} catch (error) {
 		try {
-			packageJSON = require(paths[1]+"/package.json");
+			packageJSON = await import(paths[1]+"/package.json");
 		} catch (error) {
 			packageJSON = null;
 		}
@@ -776,7 +778,7 @@ function shouldLoadExtension(mode, extensionName, userExtension, menuName = null
 }
 
 
-function loadAppearance(appearance) {
+async function loadAppearance(appearance) {
 
 	if (fs.existsSync(dataDirectory+"/beo-views/"+appearance)) {
 		appearancePath = dataDirectory+"/beo-views/"+appearance;
@@ -830,7 +832,7 @@ function loadAppearance(appearance) {
 		
 		// Load the markup for all extensions.
 		for (extensionName in masterList) {
-			shouldLoad = shouldLoadExtension(1, extensionName, masterList[extensionName].userExtension, menuName);
+			shouldLoad = await shouldLoadExtension(1, extensionName, masterList[extensionName].userExtension, menuName);
 			if (shouldLoad) {
 				extensionsListClient[extensionName] = {assetPath: "/extensions/"+extensionName};
 				
@@ -871,7 +873,7 @@ function loadAppearance(appearance) {
 				}
 				if (stringsPath) {
 					try {
-						strings[extensionName] = require(stringsPath);
+						strings[extensionName] = await import(stringsPath);
 					} catch (error) {
 						console.error("Error loading strings for extension '"+extensionName+"':", error);
 					}
@@ -921,12 +923,12 @@ function loadAppearance(appearance) {
 }
 
 
-function loadCustomisations() {
+async function loadCustomisations() {
 	if (allowCustomisation && 
 		systemConfiguration.customisationPath
 		&& fs.existsSync(systemConfiguration.customisationPath+"/customisation.json")) {
 		try {
-			customisations = require(systemConfiguration.customisationPath+"/customisation.json");
+			customisations = await import(systemConfiguration.customisationPath+"/customisation.json");
 			if (customisations.brand && customisations.systemClass) {
 				beo.customisations = customisations;
 				if (customisations.appearance) systemConfiguration.defaultAppearance = customisations.appearance;

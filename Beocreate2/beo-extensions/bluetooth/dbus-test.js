@@ -1,7 +1,8 @@
 process.env.NODE_PATH = "/usr/lib/node_modules/";
-require('module').Module._initPaths();
+import Module from 'module';
+Module._initPaths();
 
-const dbus = require('dbus-native');
+import dbus from 'dbus-native';
 
 /*
 	This test file's purpose is to show how to query a simple, basic DBus service with this library.

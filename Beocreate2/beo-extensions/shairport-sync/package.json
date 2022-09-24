@@ -24,7 +24,8 @@
   "homepage": "https://github.com/bang-olufsen/create#readme",
   "dependencies": {
     "dnssd2": "^1.0.0",
-    "node-fetch": "^2.6.0"
+    "got": "^12.5.0",
+    "got-fetch": "^5.1.2"
   },
   "beocreate": {
     "install": "./install-shairport-sync.sh",

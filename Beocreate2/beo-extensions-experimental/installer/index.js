@@ -17,8 +17,9 @@ SOFTWARE.*/
 
 // BEOCREATE ELEMENTS MODULE
 
-var exec = require("child_process").exec;
-var fs = require("fs");
+import { exec } from 'child_process';
+import fs from 'fs';
+import { version } from './package.json';
 
 module.exports = function(beoBus, globals) {
 	var beoBus = beoBus;
@@ -32,8 +33,6 @@ module.exports = function(beoBus, globals) {
 	var extensionUpdates = {};
 	
 	var hasInternet = false;
-	
-	var version = require("./package.json").version;
 	
 	var extensionsDirectory = systemDirectory+"/../beo-extensions";
 	if (!fs.existsSync(extensionsDirectory)) fs.mkdirSync(extensionsDirectory);

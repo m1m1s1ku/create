@@ -21,8 +21,7 @@ SOFTWARE.*/
 Usage: node /path/to/program.js extension parameter value
 */
 
-
-var fs = require('fs');
+import fs from 'fs';
 var dataDirectory = "/etc/beocreate/";
 
 processPath = process.argv[1];

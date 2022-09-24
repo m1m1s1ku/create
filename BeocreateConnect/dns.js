@@ -1,4 +1,6 @@
-var mdns = require('multicast-dns')();
+import MDNS from 'multicast-dns';
+
+const mdns = MDNS();
 
 mdns.on('response', function (response) {
 	console.log(response);

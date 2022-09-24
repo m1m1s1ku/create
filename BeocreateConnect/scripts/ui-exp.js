@@ -1,20 +1,19 @@
-var knownProducts = {
-"beovox-cx50": "Beovox CX 50", 
-"beovox-cx100": "Beovox CX 100", 
-"beocreate-core-mk1": "BeoCreate Core"};
+const knownProducts = {
+	"beovox-cx50": "Beovox CX 50", 
+	"beovox-cx100": "Beovox CX 100", 
+	"beocreate-core-mk1": "BeoCreate Core"
+};
 
-const ipc = require('electron').ipcRenderer;
+import { ipcRenderer, shell } from 'electron';
+
+const ipc = ipcRenderer;
 
 // OPEN LINKS IN BROWSER
 // This works for links directly in the UI, for links within the product view there is code in main.js.
-var shell = require('electron').shell;
 $(document).on('click', 'a[href^="http"]', function(event) {
     event.preventDefault();
     shell.openExternal(this.href);
 });
-
-
-
 
 // WINDOW EVENTS
 

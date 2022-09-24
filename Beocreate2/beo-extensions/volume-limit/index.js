@@ -17,9 +17,8 @@ SOFTWARE.*/
 
 // VOLUME LIMIT
 
-var beoDSP = require('../../beocreate_essentials/dsp');
-
-	var version = require("./package.json").version;
+import beoDSP from '../../beocreate_essentials/dsp';
+import { version } from './package.json';
 	
 	var debug = beo.debug;
 	var metadata = {};

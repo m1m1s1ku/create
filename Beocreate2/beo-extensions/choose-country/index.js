@@ -17,13 +17,13 @@ SOFTWARE.*/
 
 // BEOCREATE COUNTRY SELECTOR
 
-var countryList = require('country-list');
+import countryList from 'country-list';
 
 	var extensions = beo.extensions;
 	var currentCountryCode = null;
 	var debug = beo.debug;
 	
-	var version = require("./package.json").version;
+import { version } from './package.json';
 	
 	var orderedCountries = {};
 	

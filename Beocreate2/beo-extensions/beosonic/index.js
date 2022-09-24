@@ -17,15 +17,15 @@ SOFTWARE.*/
 
 // BEOCREATE TONE CONTROLS
 
-var beoDSP = require('../../beocreate_essentials/dsp');
-var fs = require('fs');
-var path = require('path');
+import { beoDSP } from '../../beocreate_essentials/dsp';
+import fs from 'fs';
+import path from 'path';
 
 var debug = beo.debug;
 var systemVolume = beo.volume;
 var Fs = null;
 
-var version = require("./package.json").version;
+import { version } from './package.json';
 
 var	defaultSettings = {
 	"loudness": 5,

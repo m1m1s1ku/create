@@ -17,14 +17,14 @@ SOFTWARE.*/
 
 // BEOCREATE NETWORK SETUP
 
-var child_process = require('child_process');
-var fs = require("fs");
-var networkCore = require('../../beocreate_essentials/networking');
+import child_process from 'child_process';
+import fs from 'fs';
+import networkCore from '../../beocreate_essentials/networking';
 
 	var debug = beo.debug;
 	var extensions = beo.extensions;
 	
-	var version = require("./package.json").version;
+	import { version } from './package.json';
 	
 	var defaultSettings = {
 		"wireless": true,

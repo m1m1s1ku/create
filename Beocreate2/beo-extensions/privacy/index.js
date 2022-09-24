@@ -17,11 +17,12 @@ SOFTWARE.*/
 
 // PRIVACY CONTROL FOR BEOCREATE
 
-var exec = require("child_process").exec;
-var fs = require("fs");
+import { exec } from 'child_process';
+import fs from 'fs';
+
+import { version } from './package.json';
 
 	var debug = beo.debug;
-	var version = require("./package.json").version;
 	
 	var defaultSettings = {
 		"privacyApprovedByUser": false

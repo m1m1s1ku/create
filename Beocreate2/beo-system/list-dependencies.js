@@ -25,7 +25,7 @@ SOFTWARE.*/
 */
 console.log("\nListing Node modules used by Beocreate 2...\n");
 
-var fs = require('fs');
+import fs from 'fs';
 
 var modules = {};
 var moduleList = [];

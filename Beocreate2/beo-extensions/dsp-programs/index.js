@@ -17,13 +17,11 @@ SOFTWARE.*/
 
 // BEOCREATE DSP PROGRAM MANAGER
 
-var beoDSP = require('../../beocreate_essentials/dsp');
-var xmlJS = require('xml-js');
-var execSync = require("child_process").execSync;
-var exec = require("child_process").exec;
-var spawn = require("child_process").spawn;
-var fs = require("fs");
-var _ = require('underscore');
+import beoDSP from '../../beocreate_essentials/dsp';
+import xmlJS from 'xml-js';
+import { execSync, exec, spawn } from 'child_process';
+import fs from 'fs';
+import _ from 'underscore';
 
 
 	var debug = beo.debug;
@@ -38,7 +36,7 @@ var _ = require('underscore');
 	
 	var reconfigurePostSetup = false;
 	
-	var version = require("./package.json").version;
+	import { version } from './package.json';
 	
 	var dspPrograms = {};
 	

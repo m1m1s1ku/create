@@ -15,9 +15,14 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.*/
 
+import BeoCom from "./communication";
+import networking from "./networking";
+import pi_system_tools from "./pi_system_tools";
+import dsp from 'dsp';
+
 var beocreate_essentials = module.exports = {
-	communication: require("./communication"),
-	networking: require("./networking"),
-	pi_system_tools: require("./pi_system_tools"),
-	dsp: require("./dsp")
+	communication: BeoCom,
+	networking,
+	pi_system_tools,
+	dsp
 };

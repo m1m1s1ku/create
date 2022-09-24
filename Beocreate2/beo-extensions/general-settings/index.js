@@ -18,7 +18,7 @@ SOFTWARE.*/
 // BEOCREATE GENERAL SETTINGS
 
 
-	var version = require("./package.json").version;
+import { version } from './package.json';
 	
 	beo.bus.on('general', function(event) {
 		

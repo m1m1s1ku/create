@@ -18,10 +18,9 @@ SOFTWARE.*/
 // DSP
 // Communicates with the SigmaTCPServer, available at https://github.com/hifiberry/hifiberry-dsp
 
-var net = require("net"); // for communication over TCP
-var fs = require('fs'); // for filesystem access
-var exec = require('child_process').exec;
-
+import net from 'net';
+import fs from 'fs';
+import { exec } from 'child_process';
 
 var dictionary = {}; // Stores the DSP parameter addresses.
 

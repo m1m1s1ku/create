@@ -17,16 +17,15 @@ SOFTWARE.*/
 
 // SHAIRPORT-SYNC (AIRPLAY) INTEGRATION FOR BEOCREATE
 
-var fs = require("fs");
-var exec = require('child_process').exec;
+import fs from 'fs';
+import { exec } from 'child_process';
+import net from 'net';
+import dnssd from 'dnssd2';
 
-var net = require("net");
-var dnssd = require("dnssd2"); // for service discovery.
-var fetch = require("node-fetch"); // for sending HTTP requests to the DACP server
+import {fetch} from 'got-fetch';
 
 	var debug = beo.debug;
-	
-	var version = require("./package.json").version;
+	import { version } from './package.json';
 	
 	var shairportSyncVersion = null;
 	var configuration = {};

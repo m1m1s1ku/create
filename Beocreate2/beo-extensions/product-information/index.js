@@ -17,12 +17,12 @@ SOFTWARE.*/
 
 // BEOCREATE PRODUCT INFORMATION
 
-var express = require('express');
-var piSystem = require("../../beocreate_essentials/pi_system_tools");
-var beoCom = require("../../beocreate_essentials/communication")();
-var fs = require("fs");
+import express from 'express';
+import piSystem from '../../beocreate_essentials/pi_system_tools';
+import beoCom from '../../beocreate_essentials/communication';
+import fs from 'fs';
 
-var version = require("./package.json").version;
+import { version } from './package.json';
 
 var extensions = beo.extensions;
 var setup = beo.setup;

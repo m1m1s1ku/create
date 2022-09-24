@@ -18,21 +18,34 @@ SOFTWARE.*/
 // BEOCREATE CONNECT
 
 
-const {app, Menu, BrowserWindow, ipcMain, nativeTheme, systemPreferences} = require('electron');
+const { app, Menu, BrowserWindow, ipcMain, nativeTheme, systemPreferences, shell } = require('electron')
+
 const windowStateKeeper = require('electron-window-state');
-const dnssd = require('dnssd2');
-const drivelist = require('drivelist');
-const fetch = require('node-fetch');
-const os = require('os');
-const fs = require('fs');
-var shell = require('electron').shell;
+
+const { Browser, tcp } = require("dnssd2")
+const { networkInterfaces } = require("os");
 
 var debug = false;
 var activeWindow = true;
 
 // MENU
 
-const template = [
+interface SubmenuItem {
+	label?: string;
+	click?: () => void; 
+	type?: string;
+	accelerator?: string | boolean;
+	role?: string;
+	submenu?: { role: string; }[];
+}
+
+interface MenuItemRebrand {
+	label?: string;
+	role?: string;
+	submenu: SubmenuItem[];
+}
+
+const template: MenuItemRebrand[] = [
   {
     label: 'Product',
     submenu: [
@@ -136,7 +149,7 @@ if (process.platform === 'darwin') {
   ]
 };
 
-const menu = Menu.buildFromTemplate(template);
+const menu = Menu.buildFromTemplate(template as any);
 Menu.setApplicationMenu(menu);
 
 
@@ -153,7 +166,7 @@ Menu.setApplicationMenu(menu);
 	    defaultHeight: 600
 	  });
     //win = new BrowserWindow({width: 800, height: 600, minWidth: 450, minHeight: 300, acceptFirstMouse: true, titleBarStyle: 'hiddenInset', title: "Bang & Olufsen Create", webPreferences: { scrollBounce: false }});
-	hasFrame = true;
+	let hasFrame = true;
 	if (process.platform !== 'darwin') {
 	  hasFrame = false;
 	}
@@ -196,8 +209,6 @@ Menu.setApplicationMenu(menu);
 			}, 500);
 			
 		}, 100);
-	
-      //listDrives();
     })
 	
 	win.once('ready-to-show', () => {
@@ -295,10 +306,10 @@ if (process.platform == "darwin" && win) {
 // FIND BEOCREATE SYSTEMS
 var browser = null;
 var startedOnce = false;
-function startDiscovery(once) { // Start or restart discovery.
+function startDiscovery(once?: boolean) { // Start or restart discovery.
 	if (!once || !startedOnce) {
 	  	if (!browser) {
-		  	browser = new dnssd.Browser(dnssd.tcp('beocreate'), {maintain: true});
+		  	browser = new Browser(tcp('beocreate'), {maintain: true});
 	
 	  		
 	  		browser.on('serviceUp', service => discoveryEvent("up", service, false));
@@ -332,7 +343,7 @@ var bonjourProductCount = 0;
 function discoveryEvent(event, service, manual) {
 	if (debug) console.log(event, new Date(Date.now()).toLocaleString(), service.fullname, service.addresses, service.txt);
 	if (event == "up" || event == "down") {
-		list = browser.list();
+		let list = browser.list();
 		//list = [];
 		if (list) refreshProducts(list);
 		bonjourProductCount = (list) ? list.length : 0;
@@ -347,7 +358,7 @@ function discoveryEvent(event, service, manual) {
 	
 }
 
-function refreshProducts(services) {
+function refreshProducts(services?) {
 	if (services == null) {
 		services = [];
 		if (browser) services = browser.list();
@@ -364,8 +375,8 @@ function refreshProducts(services) {
 		}
 		
 		// Find out which services have been removed.
-		for (fullname in products) {
-			serviceFound = -1;
+		for (let fullname in products) {
+			let serviceFound = -1;
 			for (var s = 0; s < services.length; s++) {
 				if (services[s].fullname == fullname) serviceFound = s;
 			}
@@ -377,13 +388,13 @@ function refreshProducts(services) {
 	}
 }
 
-function setProductInfo(service, manual) {
-	modelID = null;
-	modelName = null;
-	systemID = null;
-	systemStatus = null;
-	productImage = null;
-	for (var key in service.txt) {
+function setProductInfo(service, manual?) {
+	let modelID = null;
+	let modelName = null;
+	let systemID = null;
+	let systemStatus = null;
+	let productImage = null;
+	for (let key in service.txt) {
 	    if (service.txt.hasOwnProperty(key)) {
 	        switch (key) {
 				case "type":
@@ -407,7 +418,7 @@ function setProductInfo(service, manual) {
 			}
 	    }
 	}
-	product = {
+	let product = {
 		fullname: service.fullname,
 		addresses: service.addresses,
 		host: service.host,
@@ -417,9 +428,12 @@ function setProductInfo(service, manual) {
 		modelName: modelName,
 		productImage: productImage,
 		systemID: systemID,
-		systemStatus: systemStatus
+		systemStatus: systemStatus,
+		manual: false,
 	};
-	if (service.manual) product.manual = true;
+	if (service.manual) {
+		product.manual = true;
+	} 
 	products[service.fullname] = product;
 	return product;
 }
@@ -436,12 +450,13 @@ ipcMain.on("refreshProducts", (event, arg) => {
 var manuallyDiscoveredProduct = null;
 var manualDiscoveryInterval;
 var manualDiscoveryAddress = "10.0.0.1";
-function discoverProductAtAddress(address) {
+async function discoverProductAtAddress(address) {
 	if (bonjourProductCount == 0) {
+		const { fetch } = await import('got-fetch');
 		fetch('http://'+address+'/product-information/discovery').then(res => {
 			if (res.status == 200) {
 				res.json().then(body => {
-					service = {name: body.name, fullname: body.name+"._"+body.serviceType+"._tcp.local.", port: body.advertisePort, addresses: [address], host: address, txt: body.txtRecord, manual: true};
+					const service = {name: body.name, fullname: body.name+"._"+body.serviceType+"._tcp.local.", port: body.advertisePort, addresses: [address], host: address, txt: body.txtRecord, manual: true};
 					if (!manuallyDiscoveredProduct) {
 						manuallyDiscoveredProduct = service;
 						refreshProducts();
@@ -490,18 +505,18 @@ function startCheckingIPAddress() {
 	}, 10000);
 }
 
-oldIPs = [];
+let oldIPs = [];
 function hasIPChanged() {
-	ifaces = os.networkInterfaces();
-	newIPs = []
-	for (iface in ifaces) {
+	let ifaces = networkInterfaces();
+	let newIPs = []
+	for (let iface in ifaces) {
 		for (var i = 0; i < ifaces[iface].length; i++) {
 			if (ifaces[iface][i].family == "IPv4") {
 				newIPs.push(ifaces[iface][i].address);
 			}
 		}
 	}
-	if (oldIPs.equals(newIPs)) {
+	if (equals(newIPs)) {
 		return false;
 	} else {
 		oldIPs = newIPs;
@@ -509,12 +524,8 @@ function hasIPChanged() {
 	}
 }
 
-// https://stackoverflow.com/questions/7837456/how-to-compare-arrays-in-javascript
-// Warn if overriding existing method
-if(Array.prototype.equals)
-    console.warn("Overriding existing Array.prototype.equals. Possible causes: New API defines the method, there's a framework conflict or you've got double inclusions in your code.");
 // attach the .equals method to Array's prototype to call it on any array
-Array.prototype.equals = function (array) {
+function equals(array) {
     // if the other array is a falsy value, return
     if (!array)
         return false;
@@ -539,25 +550,3 @@ Array.prototype.equals = function (array) {
 }
 // Hide method from for-in loops
 Object.defineProperty(Array.prototype, "equals", {enumerable: false});
-
-
-
-
-
-// SD CARD LOGIC
-
-ipcMain.on("listDrives", (event, arg) => {
-	listDrives();
-	//console.log(app.getPath("userData"));
-}); 
-
-function listDrives() {
-	drivelist.list((error, drives) => {
-		if (error) {
-			throw error;
-		}
-		
-		
-		win.webContents.send('availableDrives', drives);
-	});
-}

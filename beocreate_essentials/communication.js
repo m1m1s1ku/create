@@ -19,17 +19,15 @@ SOFTWARE.*/
 
 // Handles socket communication between the sound system and the client.
 
-//var mdns = require('mdns');
-var dnssd = require('dnssd2'); // Replacing mdns, to avoid Avahi errors and to be consistent with the desktop app.
-//var bonjour = require('bonjour')();
-var fs = require('fs');
-var server = require('websocket').server;
-var http = require('http');
-var https = require('https');
-var eventEmitter = require('events').EventEmitter;
-var util = require('util');
+import { Advertisement, tcp } from 'dnssd2'; // Replacing mdns, to avoid Avahi errors and to be consistent with the desktop app.
+import { readFileSync } from 'fs';
+import { server } from 'websocket';
+import { createServer } from 'http';
+import { createServer as _createServer } from 'https';
+import { EventEmitter as eventEmitter } from 'events';
+import { inherits } from 'util';
 
-module.exports = BeoCom;
+export default BeoCom;
 
 var acceptedProtocols = [];
 var acceptConnections = true;
@@ -47,7 +45,7 @@ function BeoCom() {
 	eventEmitter.call(this);
 }
 
-util.inherits(BeoCom, eventEmitter);
+inherits(BeoCom, eventEmitter);
 
 BeoCom.prototype.startSocket = function(options, callback) {
 	self = this;
@@ -75,15 +73,15 @@ BeoCom.prototype.startSocket = function(options, callback) {
 		if (!options.ssl) {
 			// If SSL is not specified, run a normal HTTP server.
 			socket = new server({
-				httpServer: http.createServer().listen(wsPort)
+				httpServer: createServer().listen(wsPort)
 			});
 			//return true;
 		} else {
 			// If SSL is set to true, run a HTTPS server.
 			socket = new server({
-				httpServer: https.createServer({
-					key:fs.readFileSync(options.sslKey), 
-					cert:fs.readFileSync(options.sslCert)
+				httpServer: _createServer({
+					key:readFileSync(options.sslKey), 
+					cert:readFileSync(options.sslCert)
 				}).listen(wsPort)
 			});
 			//return true;
@@ -168,7 +166,7 @@ BeoCom.prototype.startBonjour = function(options, callback) {
 			advertisePort = wsPort;
 		}
 		if (options.txtRecord) {
-			announceService = new dnssd.Advertisement(dnssd.tcp(serviceType), advertisePort, { name: options.name, txt: options.txtRecord });
+			announceService = new Advertisement(tcp(serviceType), advertisePort, { name: options.name, txt: options.txtRecord });
 			//announceService = bonjour.publish({name: options.name, port: advertisePort, type: serviceType, txt: options.txtRecord}); // bonjour
 			//announceService = new mdns.Advertisement(mdns.tcp(serviceType), advertisePort, { name: options.name, txtRecord: options.txtRecord });
 		} else {

@@ -17,8 +17,7 @@ SOFTWARE.*/
 
 // BEOCREATE TV CONTROL (HDMI-CEC)
 
-var CECMonitor = require("@senzil/cec-monitor").CECMonitor;
-var CEC = require("@senzil/cec-monitor").CEC;
+import {CECMonitor, CEC} from '@senzil/cec-monitor';
 
 module.exports = function(beoBus) {
 	var module = {};

@@ -21,16 +21,9 @@ SOFTWARE.*/
 var inElectron = false;
 var debug = true;
 
-var ipc;
-var shell;
-var remote;
-if (typeof require !== 'undefined') {
-	ipc = require('electron').ipcRenderer;
-	shell = require('electron').shell;
-	remote = require('electron').remote;
-	var {Menu, MenuItem} = remote;
-	inElectron = true;
-}
+import { ipcRenderer as ipc, shell, remote } from 'electron';
+var {Menu, MenuItem} = remote;
+inElectron = true;
 
 var darkAppearance = false;
 var windows = false;

@@ -1,0 +1,17 @@
+{
+  "extends": "@tsconfig/node16/tsconfig.json",
+  "compilerOptions": {
+    "module": "es2020",
+    "sourceMap": true,
+    "outDir": "build",
+    "baseUrl": ".",
+    "strict": false,
+    "noImplicitAny": false,
+    "paths": {
+      "*": ["node_modules/*"]
+    }
+  },
+  "include": [
+    "**/*"
+  ]
+}

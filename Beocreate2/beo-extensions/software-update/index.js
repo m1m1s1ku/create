@@ -17,16 +17,14 @@ SOFTWARE.*/
 
 // HIFIBERRY SOFTWARE UPDATE FOR BEOCREATE
 
-var exec = require("child_process").exec;
-var spawn = require("child_process").spawn;
-var fs = require("fs");
+import { version } from './package.json';
+import { exec, spawn } from 'child_process';
+import fs from 'fs';
+import util from 'util';
 
-const util = require('util');
-const execPromise = util.promisify(require('child_process').exec);
+const execPromise = util.promisify(exec);
 
 var debug = beo.debug;
-var version = require("./package.json").version;
-
 
 var defaultSettings = {
 	autoCheck: true,

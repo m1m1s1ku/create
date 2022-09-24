@@ -19,21 +19,18 @@ SOFTWARE.
 
 // TTABLE (ALSA)
 
-var execSync = require('child_process').execSync;
-var version = require("./package.json").version;
+import { execSync } from 'child_process';
+import { version } from './package.json';
 
-var debug = beo.debug;
+let debug = beo.debug;
 
-var defaultSettings = {
+const defaultSettings = {
 	"limit_db": -3,
 	"min_slider": 0,
 	"role": "mono"
 };
 
-
 function read_settings() {
-	var child;
-
 	try {
 		stdout = execSync('/opt/hifiberry/bin/speaker-role');
 		settings = JSON.parse(JSON.stringify(defaultSettings));
@@ -69,28 +66,19 @@ function write_settings(settings) {
 	} catch (error) {
 		console.error("Exception calling speaker-role:", error);
 	}
-	
-
-
 }
 
 beo.bus.on('general', function(event) {
-	
 	if (event.header == "activatedExtension") {
 		if (event.content.extension == "alsa-ttable") {
-			
 			if (debug) console.log("Reading settings for ALSA-ttable...");
 			read_settings();
-			
 		}
 	}
-	
 });
 
 beo.bus.on('alsa-ttable', function(event) {
-	
 	if (event.header == "saveSettings") {
-		
 		settings = event.content.settings
 		if (settings.limit_db != undefined && settings.role != undefined) {
 			write_settings(settings);
@@ -108,7 +96,6 @@ beo.bus.on('alsa-ttable', function(event) {
 			console.error("sound.setVolumeControlRange not available")
 		}
 	}
-	
 });
 
 	

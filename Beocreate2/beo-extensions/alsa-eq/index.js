@@ -19,14 +19,14 @@ SOFTWARE.
 
 // ALSAEQ
 
-var exec = require('child_process').exec;
-var execFile = require('child_process').execFile;
-var version = require("./package.json").version;
-var debug = beo.debug;
-var lastUsed = Date.now();
-var usagePrefix = "alsa-equalizer";
+import { exec, execFile } from 'child_process';
+import { version } from './package.json';
 
-var settings = {
+let debug = beo.debug;
+let lastUsed = Date.now();
+let usagePrefix = "alsa-equalizer";
+
+const settings = {
 	"31": 66,
 	"63": 66,
 	"125": 66,
@@ -39,7 +39,7 @@ var settings = {
 	"16000": 66,
 };
 
-var controls = {
+const controls = {
 	"31": '00. 31 Hz',
 	"63": '01. 63 Hz',
 	"125": '02. 125 Hz',
@@ -53,9 +53,7 @@ var controls = {
 }	
 
 
-function read_settings() {
-	var child;
-	
+function read_settings() {	
 	for (var hz in settings) {
 		readALSAEq(hz);
 	}
@@ -139,7 +137,6 @@ function enableEq(enabled) {
 
 
 beo.bus.on('general', function(event) {
-	
 	if (event.header == "activatedExtension") {
 		if (event.content.extension == "alsa-eq") {
 			if (debug) console.log("Reading alsaeq settings...");
@@ -150,7 +147,6 @@ beo.bus.on('general', function(event) {
 });
 
 beo.bus.on('alsa-eq', function(event) {
-	
 	if (event.header == "setEq") {
 		try {
 			hz = event.content.hz;

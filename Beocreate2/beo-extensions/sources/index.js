@@ -16,13 +16,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.*/
 
 // BEOCREATE SOURCES
-var fetch = require("node-fetch");
-var exec = require("child_process").exec;
+import {fetch} from 'got-fetch';
+import { version } from './package.json';
+import { execSync } from 'child_process';
 
 var debug = beo.debug;
-
-var version = require("./package.json").version;
-
 
 var allSources = {};
 var currentSource = null;
@@ -830,7 +828,7 @@ function checkEnabled(queue, callback) {
 
 function stopAllSources() {
 	// Stop currently active sources, if the source demands it.
-	execSync = require("child_process").execSync;
+	// execSync = execSync;
 	execSync("/opt/hifiberry/bin/pause-all");
 	for (source in allSources) {
 		if (allSources[source].active) {

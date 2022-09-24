@@ -21,6 +21,6 @@
   },
   "homepage": "https://github.com/bang-olufsen/create#readme",
   "dependencies": {
-    "mpd-api": "^1.0.3"
+    "mpd-api": "^1.1.1"
   }
 }

@@ -17,11 +17,11 @@ SOFTWARE.*/
 
 // DISPLAY SETTINGS FOR BEOCREATE 2
 
-var exec = require("child_process").exec;
+import { exec } from 'child_process';
+
+import { version } from './package.json';
 
 var debug = beo.debug;
-
-var version = require("./package.json").version;
 
 var canUseExternalDisplay = false;
 var externalDisplayOn = false;

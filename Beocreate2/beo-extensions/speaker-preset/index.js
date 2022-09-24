@@ -17,16 +17,16 @@ SOFTWARE.*/
 
 // SOUND PRESETS
 
-var fs = require('fs');
-var path = require('path');
-var beoDSP = require('../../beocreate_essentials/dsp');
+import fs from 'fs';
+import path from 'path';
+import { execSync } from 'child_process';
 
-	var extensions = beo.extensions;
-	var presetDirectory = beo.dataDirectory+"/beo-speaker-presets"; // Sound presets directory.
-	var systemPresetDirectory = beo.systemDirectory+"/beo-speaker-presets";
-	
-	var version = require("./package.json").version;
-	
+var extensions = beo.extensions;
+var presetDirectory = beo.dataDirectory+"/beo-speaker-presets"; // Sound presets directory.
+var systemPresetDirectory = beo.systemDirectory+"/beo-speaker-presets";
+
+import { version } from './package.json';
+
 	var debug = beo.debug;
 	var metadata = {};
 	var Fs = null;
@@ -45,7 +45,6 @@ var beoDSP = require('../../beocreate_essentials/dsp');
 	
 	migrateSoundPresets();
 	if (!fs.existsSync(presetDirectory)) fs.mkdirSync(presetDirectory);
-	
 	
 	beo.bus.on('general', function(event) {
 		
@@ -579,7 +578,7 @@ var beoDSP = require('../../beocreate_essentials/dsp');
 					}
 				}
 			} else {
-				require("child_process").execSync("rm -rf "+beo.dataDirectory+"/beo-sound-presets");
+				execSync("rm -rf "+beo.dataDirectory+"/beo-sound-presets");
 			}
 			if (fs.existsSync(beo.dataDirectory+"/sound-preset.json")) {
 				oldSettings = beo.getSettings("sound-preset");

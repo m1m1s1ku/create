@@ -18,8 +18,7 @@ SOFTWARE.*/
 // BEOCREATE CLOCK EXTENSION
 // Work in UTC. Times will be displayed in local time in the UI.
 
-	
-var version = require("./package.json").version;
+import { version } from './package.json';
 debug = beo.debugMode;
 
 var currentDate = null;

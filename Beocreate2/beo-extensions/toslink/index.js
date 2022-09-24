@@ -17,7 +17,7 @@ SOFTWARE.*/
 
 // BEOCREATE TOSLINK
 
-var beoDSP = require('../../beocreate_essentials/dsp');
+import beoDSP from '../../beocreate_essentials/dsp';
 
 	var debug = beo.debug;
 	

@@ -18,11 +18,11 @@ SOFTWARE.*/
 // BEOCREATE CHANNEL SETUP
 
 var _ = beo.underscore;
-var beoDSP = require('../../beocreate_essentials/dsp');
+import beoDSP from '../../beocreate_essentials/dsp';
 
 var extensions = beo.extensions;
 
-var version = require("./package.json").version;
+import { version } from './package.json';
 
 var debug = beo.debug;
 

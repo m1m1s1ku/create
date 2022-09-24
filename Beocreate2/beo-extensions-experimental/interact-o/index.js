@@ -20,14 +20,13 @@ SOFTWARE.*/
 
 // At startup, extensions should announce the triggers and actions they provide.
 
-var SerialPort = require('serialport'); // for communicating through serial ports
-var Readline = require('@serialport/parser-readline');
+import SerialPort from 'serialport';
+import ReadLine from '@serialport/parser-readline';
+import { version } from './package.json';
 
 module.exports = function(beoBus, globals) {
 	var beoBus = beoBus;
 	var debug = globals.debug;
-	
-	var version = require("./package.json").version;
 	
 	var port = null;
 	

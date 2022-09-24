@@ -17,13 +17,12 @@ SOFTWARE.*/
 
 // HIFIBERRY DEBUG INFORMATION COLLECTOR FOR BEOCREATE
 
-const fetch = require("node-fetch");
-var exec = require("child_process").exec;
-var fs = require("fs");
+import {fetch} from 'got-fetch';
+import { exec } from 'child_process';
+import fs from 'fs';
+import { version } from './package.json';
 
 var debug = beo.debug;
-var version = require("./package.json").version;
-
 var collecting = false;
 var archive = null;
 var archiveDownloadTimeout;

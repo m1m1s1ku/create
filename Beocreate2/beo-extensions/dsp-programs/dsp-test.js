@@ -1,5 +1,5 @@
-var beoDSP = require('../../beocreate_essentials/dsp');
-var xmlJS = require('/usr/lib/node_modules/xml-js');
+import beoDSP from '../../beocreate_essentials/dsp';
+import xmlJS from '/usr/lib/node_modules/xml-js';
 
 beoDSP.connectDSP(function(success) {  
 	if (success) {

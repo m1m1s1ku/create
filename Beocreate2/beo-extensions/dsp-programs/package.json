@@ -21,7 +21,7 @@
   "author": "Bang & Olufsen",
   "license": "MIT",
   "dependencies": {
-    "underscore": "^1.9.1",
+    "underscore": "^1.13.6",
     "xml-js": "^1.6.11"
   },
   "beocreate": {

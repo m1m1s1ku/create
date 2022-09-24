@@ -20,7 +20,7 @@ SOFTWARE.*/
 
 	var debug = beo.debug;
 	
-	var version = require("./package.json").version;
+import { version } from './package.json';
 	
 	var defaultSettings = {
 		useExternalArtwork: "auto"

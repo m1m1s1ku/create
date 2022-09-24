@@ -16,13 +16,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.*/
 
 // HIFIBERRYOS ROOM COMPENSATION FOR BEOCREATE 2
-const spawn = require("child_process").spawn;
-const exec = require("child_process").exec;
-const fs = require("fs");
-const path = require("path");
-const fetch = require("node-fetch");
-
-var version = require("./package.json").version;
+import { spawn, exec } from 'child_process';
+import fs from 'fs';
+import path from 'path';
+import {fetch} from 'got-fetch';
+import { version } from './package.json';
 var arcDirectory = beo.dataDirectory+"/beo-room-compensation"; // Sound presets directory.
 
 var newMeasurementName = null;

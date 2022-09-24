@@ -1,4 +1,4 @@
-var BS5 = require("node-hid/src/beosound5.js");
+import BS5 from 'node-hid/src/beosound5.js';
 
 Beosound5 = new BS5.Beosound5();
 

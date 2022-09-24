@@ -17,32 +17,24 @@ SOFTWARE.*/
 
 // HIFIBERRY AUDIOCONTROL INTERACTION FOR BEOCREATE
 
-var exec = require("child_process").exec;
-var fs = require("fs");
+import { exec } from 'child_process';
+import fs from 'fs';
+import { version } from './package.json';
 
 var debug = beo.debug;
-var version = require("./package.json").version;
 
 var configuration = {};
 
-
 beo.bus.on('general', function(event) {
-	
 	if (event.header == "startup") {
-		
-
-	}
 	
+	}
 });
 
 
 beo.bus.on('hifiberry-audiocontrol', function(event) {
 	
-	
-	
-	
 });
-
 
 
 function configureAudioControl(options, relaunch, callback) {

@@ -17,20 +17,20 @@ SOFTWARE.*/
 
 // MPD CONTROL FOR BEOCREATE
 
-var express = require('express');
-var exec = require("child_process").exec;
-var spawn = require("child_process").spawn;
-var path = require("path");
-var fs = require("fs");
-var mpdAPI = require("mpd-api");
-var mpdCmd = mpdAPI.mpd;
-const util = require('util');
+import express from 'express';
+import { exec, spawn} from 'child_process';
+import path from 'path';
+import fs from 'fs';
+import util from 'util';
+import mpdAPI from 'mpd-api';
 const execPromise = util.promisify(exec);
-const dnssd = require("dnssd2"); // for service discovery.
+import dnssd from 'dnssd2';
+
+var mpdCmd = mpdAPI.mpd;
 
 var debug = beo.debug;
 
-var version = require("./package.json").version;
+import { version } from './package.json';
 
 var defaultSettings = {
 	coverNames: ["cover", "artwork", "folder", "front", "albumart"],

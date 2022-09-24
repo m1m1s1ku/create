@@ -16,10 +16,4 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.*/
 
 // BEOCREATE CONNECT STARTER SCRIPT
-
-
-if (process.env.ELECTRON_RUN_AS_NODE) {
-	require('./writer.js');
-} else {
-	require('./main.js');
-}
+require('./main.js');

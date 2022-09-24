@@ -3,37 +3,39 @@
  "productName": "Beocreate Connect",
  "version": "0.3.0",
  "description": "Desktop utility for Beocreate-based sound systems",
- "main": "start.js",
+ "main": "build/index.js",
  "scripts": {
-  "start": "electron .",
+  "compile": "tsc && cp index.html build/",
+  "start": "npm run compile && electron ./build",
   "dist": "electron-builder",
-  "pack": "electron-builder --dir"
+  "pack": "electron-builder --dir",
+  "postinstall": "electron-builder install-app-deps"
  },
  "keywords": [],
  "author": "",
  "license": "MIT",
  "devDependencies": {
-  "electron": "^8.5.2",
-  "electron-builder": "^21.2.0",
-  "electron-rebuild": "^1.11.0",
-  "node-hid": "^1.2.0"
+  "electron": "^20.2.0",
+  "electron-builder": "^23.3.3",
+  "node-hid": "^2.1.1"
  },
  "dependencies": {
+  "@tsconfig/node16": "^1.0.3",
+  "copyfiles": "^2.4.1",
   "dnssd2": "^1.0.0",
-  "drivelist": "^6.4.6",
   "electron-window-state": "^5.0.3",
-  "etcher-image-write": "^9.1.6",
-  "multicast-dns": "^7.2.2",
-  "node-fetch": "^2.6.1",
+  "got": "^12.5.0",
+  "got-fetch": "^5.1.2",
+  "multicast-dns": "^7.2.5",
   "sudo-prompt": "^9.2.1",
-  "tinkerhub-mdns": "^0.5.1"
+  "tinkerhub-mdns": "^0.5.1",
+  "typescript": "^4.8.3"
  },
  "build": {
   "appId": "dk.bang-olufsen.beocreateconnect",
   "productName": "Beocreate Connect",
   "copyright": "Copyright 2018-2020 Bang & Olufsen A/S. Licensed under MIT.",
   "nodeVersion": "current",
-  "readonly": false,
   "directories": {
    "buildResources": "build"
   },

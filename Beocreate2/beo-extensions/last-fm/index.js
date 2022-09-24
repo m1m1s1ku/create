@@ -16,13 +16,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.*/
 
 // LAST.FM CONTROL FOR BEOCREATE
-
-var exec = require("child_process").exec;
-var fs = require("fs");
-
+import { version } from './package.json';
 	var debug = beo.debug;
-	var version = require("./package.json").version;
-	
 	
 	var settings = {
 		loggedInAs: false

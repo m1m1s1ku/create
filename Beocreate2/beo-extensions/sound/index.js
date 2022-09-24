@@ -18,16 +18,13 @@ SOFTWARE.*/
 // BEOCREATE SYSTEM SOUND EXTENSION
 // Mainly handles volume control.
 
-var exec = require('child_process').exec;
-var execFile = require('child_process').execFile;
-var beoDSP = require('../../beocreate_essentials/dsp');
-var fetch = require("node-fetch");
+import { exec, execFile } from 'child_process';
 
+import {fetch} from 'got-fetch';
 
+import { version } from './package.json';
 
 	var debug = beo.debug;
-	
-	var version = require("./package.json").version;
 	
 	var defaultSettings = {
 		"advancedSoundAdjustmentsEnabled": false,

@@ -17,11 +17,11 @@ SOFTWARE.*/
 
 // Openhome CONTROL FOR BEOCREATE
 
-var exec = require("child_process").exec;
-var fs = require("fs");
+import { exec } from 'child_process';
+import fs from 'fs';
 
 	var debug = beo.debug;
-	var version = require("./package.json").version;
+	import { version } from './package.json';
 	
 	var settings = {
 		openhomeEnabled: false,

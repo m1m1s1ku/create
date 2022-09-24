@@ -19,9 +19,8 @@ SOFTWARE.*/
 // Connect triggers with actions to create an interactive sound system.
 
 
-
-var version = require("./package.json").version;
-var SerialPort = require('serialport'); // For communicating through serial ports.
+import { version } from './package.json';
+import SerialPort from 'serialport';
 var Readline = SerialPort.parsers.Readline; // For parsing with newline.
 
 var debug = beo.debug;

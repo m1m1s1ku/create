@@ -19,6 +19,6 @@
   "author": "Bang & Olufsen",
   "license": "MIT",
   "dependencies": {
-    "serialport": "^7.1.5"
+    "serialport": "^10.4.0"
   }
 }

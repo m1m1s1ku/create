@@ -17,12 +17,11 @@ SOFTWARE.*/
 
 // BEOCREATE TV CONTROL (HDMI-CEC)
 
-var CECMonitor = require("@senzil/cec-monitor").CECMonitor;
-var CEC = require("@senzil/cec-monitor").CEC;
+import {CECMonitor, CEC} from '@senzil/cec-monitor';
+import { version } from './package.json';
 
 var debug = beo.debug;
 var sound = (beo.extensions['sound']) ? beo.extensions['sound'] : null;
-var version = require("./package.json").version;
 	
 	var monitor = null;
 	

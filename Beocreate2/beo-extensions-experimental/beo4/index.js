@@ -17,7 +17,7 @@ SOFTWARE.*/
 
 // BEO4 INTERFACING FOR BEOCREATE 2
 
-//var SerialPort = require('serialport'); // for communicating through serial ports
+//import SerialPort from "serialport"; // for communicating through serial ports
 //var Readline = SerialPort.parsers.Readline;
 
 var beo4Directory = {

@@ -17,8 +17,9 @@ SOFTWARE.*/
 
 // PAIRING FOR TWO BEOCREATE 4-CHANNEL AMPLIFIERS
 
-var beoDSP = require(beo.systemDirectory+'/beocreate_essentials/dsp');
-var version = require("./package.json").version;
+import beoDSP from beo.systemDirectory+'/beocreate_essentials/dsp';
+
+import { version } from './package.json';
 var debug = beo.debug;
 
 var defaultSettings = {

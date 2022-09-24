@@ -27,8 +27,8 @@ SOFTWARE.*/
 		};
 	var settings = JSON.parse(JSON.stringify(defaultSettings));
 	
-	var version = require("./package.json").version;
-	
+	import { version } from './package.json';
+		
 	var doPostSetup = false;
 	var setupFlowOrder = ["choose-country", "network", "speaker-preset", "product-information", "privacy"];
 	

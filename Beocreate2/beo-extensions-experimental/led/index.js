@@ -17,14 +17,12 @@ SOFTWARE.*/
 
 // BEOCREATE STATUS LED CONTROL
 
-var pigpio = require('pigpio'); // For GPIO control.
-
+import pigpio from 'pigpio';
+import { version } from './package.json';
 
 module.exports = function(beoBus, globals) {
 	var beoBus = beoBus;
 	var debug = globals.debug;
-	
-	var version = require("./package.json").version;
 	
 	var ledR = null;
 	var ledG = null;

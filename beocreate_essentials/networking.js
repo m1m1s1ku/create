@@ -19,16 +19,11 @@ SOFTWARE.*/
 
 // A collection of relevant network setup functions for BeoCreate sound systems.
 
-
-var fs = require('fs');
-var os = require('os');
-var exec = require('child_process').exec;
-var iwlist = require('wireless-tools/iwlist');
-var iwconfig = require('wireless-tools/iwconfig');
-var ifconfig = require('wireless-tools/ifconfig');
-//var udhcpd = require('wireless-tools/udhcpd');
-//var hostapd = require('wireless-tools/hostapd');
-const util = require('util');
+import fs from 'fs';
+import os from 'os';
+import { exec } from 'exec';
+import { iwlist, iwconfig, ifconfig } from 'wireless-tools';
+import util from 'util';
 const execPromise = util.promisify(exec);
 
 var networking = module.exports = {

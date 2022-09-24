@@ -14,7 +14,7 @@
     "volume",
     "limit",
     "sound",
-	"hifiberry",
+	  "hifiberry",
     "alsa"
   ],
   "author": "HiFiBerry",

@@ -19,9 +19,8 @@ SOFTWARE.*/
 
 // Can perform some basic Raspberry Pi system tasks, such as setting hostname, expanding root file system and power management (shutdown, reboot).
 
-var exec = require('child_process').exec;
-var fs = require('fs');
-
+import { exec } from 'child_process';
+import fs from 'fs';
 
 var pi_system_tools = module.exports = {
 	getHostname: getHostname,

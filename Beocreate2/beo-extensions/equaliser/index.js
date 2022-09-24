@@ -17,13 +17,13 @@ SOFTWARE.*/
 
 // BEOCREATE SPEAKER EQUALISER
 
-var beoDSP = require(beo.systemDirectory+'/beocreate_essentials/dsp');
+import beoDSP from beo.systemDirectory+'/beocreate_essentials/dsp';
 var _ = beo.underscore;
 
 	var debug = beo.debug;
 	var extensions = beo.extensions;
 	
-	var version = require("./package.json").version;
+	import { version } from './package.json';
 	
 	var metadata = {};
 	var Fs = null;
