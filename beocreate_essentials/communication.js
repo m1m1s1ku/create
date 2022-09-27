@@ -135,7 +135,7 @@ BeoCom.prototype.startSocket = function(options, callback) {
 			});
 	
 			connection.on('close', function(connection) {
-				rmID = removeClient(connection);
+				let rmID = removeClient(connection);
 				//console.log("Client disconnected.");
 				self.emit('close', rmID);
 			});
@@ -217,13 +217,14 @@ function addClient(connection, protocol) {
 }
 
 function removeClient(connection) {
+	let rmIndex;
 	for (var i = 0; i < connectionLinks.length; i++) {
 		if (connectionLinks[i].connected == false) {
 			rmIndex = i;
 			break;
 		}
 	}
-	rmID = connections[rmIndex].ID;
+	let rmID = connections[rmIndex].ID;
 	connectionLinks.splice(rmIndex, 1);
 	connections.splice(rmIndex, 1);
 	return rmID;

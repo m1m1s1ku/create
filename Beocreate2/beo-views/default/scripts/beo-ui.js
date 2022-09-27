@@ -83,10 +83,8 @@ darkAppearance = false;
 
 // RECEIVE MESSAGES FROM BEOCREATE APP
 window.addEventListener('message',function(event) {
-	
-	data = JSON.parse(event.data);
+	data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
 	if (data.header != undefined) {
-	
 		switch (data.header) {
 			case "isShownInBeoApp":
 				if (data.content == true) {
@@ -102,7 +100,6 @@ window.addEventListener('message',function(event) {
 				}
 				break;
 		}
-	
 	}
 });
 

@@ -202,7 +202,7 @@ function getSettings(extension) {
 	if (extension) {
 		if (fs.existsSync(dataDirectory+"/"+extension+".json")) { 
 			try {
-				file = fs.readFileSync(dataDirectory+"/"+extension+".json", "utf8").trim();
+				const file = fs.readFileSync(dataDirectory+"/"+extension+".json", "utf8").trim();
 				if (file) {
 					settings = JSON.parse(file);
 					// Return the parsed JSON.
