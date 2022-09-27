@@ -411,11 +411,15 @@ let clientChannel = null;
 let sshInstance = null;
 let currentRouting = null;
 function connectSSH() {
-	if(sshInstance) {
-		sshInstance.dispose();
-		clientChannel.close();
+	function cleanup () {
+		sshInstance?.dispose();
+		clientChannel?.close();
 		clientChannel = null;
 		sshInstance = null;
+		currentRouting = null;
+	}
+	if(sshInstance) {
+		cleanup();
 		return;
 	}
 
@@ -474,11 +478,7 @@ function connectSSH() {
 			// @note : enforce killall on error (enable switch aspect of the button)
 			if(result.stderr) {
 				sshInstance?.execCommand('killall arecord').then(() => {
-					sshInstance?.dispose();
-					clientChannel?.close();
-					clientChannel = null;
-					sshInstance = null;
-					currentRouting = null;
+					cleanup();
 					setTimeout(() => {
 						refreshProducts();
 					}, 500);
