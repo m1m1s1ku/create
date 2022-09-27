@@ -254,6 +254,8 @@ function toggleMenu(force) {
 		showWindowTitle(false);
 		connectOnDiscovery = {identifier: null, productName: null};
 	} else {
+		document.getElementById('main-menu').classList.remove('show');
+
 		connectOnDiscovery = {identifier: null, productName: null};
 		if (currentAssistant) startAssistant();
 		if (shouldEnableRefreshButton) {
@@ -286,7 +288,7 @@ function showMenuButton(show) {
 function productNotification(title, description) {
 	const productNotification = document.querySelector('#product-notification');
 
-	if (!title && !description) {
+	if (!title || !description) {
 		productNotification.classList.remove('hidden');
 	} else {
 		productNotification.classList.remove('hidden');
@@ -582,9 +584,6 @@ function configureProduct(fullname, fromDiscovery) {
 		setWindowTitle(products[fullname].name);
 		showMenuButton(true);
 		connectOnDiscovery = {identifier: null, productName: null};
-		setTimeout(function() {
-			productNotification();
-		}, 600);
 		productIP = products[fullname].addresses[0]+":"+products[fullname].port;
 		selectedProduct = JSON.parse(JSON.stringify(products[fullname]));
 		src = document.querySelector('#product-view').getAttribute('src');
@@ -600,14 +599,6 @@ function configureProduct(fullname, fromDiscovery) {
 		}
 		showSection("product-view", true);
 	}
-}
-
-function setUpNew() {
-	endAssistant();
-	setWindowTitle("Set Up New");
-	showMenuButton(true);
-	shouldEnableRefreshButton = false;
-	showSection('set-up-new', true, 'set-up-new-start');
 }
 
 // Right-click menu for products
@@ -702,12 +693,6 @@ function assistantFlow(step) {
 	switch (currentAssistant) {
 		case "findAndSetUp":
 			switch (assistantStep) {
-				case -1:
-					//toggleMenu(true);
-					showScreen('set-up-new-start');
-					setWindowTitle("Set Up New");
-					endAssistant();
-					break;
 				case 0:
 					assistantButtons("Cancel", "Next Step");
 					enableAssistantButtons(true, true);
@@ -724,24 +709,6 @@ function assistantFlow(step) {
 					enableAssistantButtons(true, false);
 					showScreen('wait-for-discovery', direction);
 					//ipc.send("refreshProducts");
-					break;
-			}
-			break;
-			
-		case "createCard":
-			switch (assistantStep) {
-				case -1:
-					//toggleMenu(true);
-					showScreen('set-up-new-start');
-					setWindowTitle("Set Up New");
-					endAssistant();
-					break;
-				case 0:
-					assistantButtons("Cancel", "Prepare Card");
-					enableAssistantButtons(true, false);
-					showScreen('select-card', direction);
-					showMenuButton(true);
-					ipc.send("listDrives");
 					break;
 			}
 			break;

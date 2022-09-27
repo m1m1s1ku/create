@@ -542,9 +542,9 @@ strong {
 }
 
 .above-fold {
+    background-color: var(--main-bg);
 	min-height: calc(100vh - 38px);
 }
-
 
 .menu-group {
 	margin-bottom: 20px;
