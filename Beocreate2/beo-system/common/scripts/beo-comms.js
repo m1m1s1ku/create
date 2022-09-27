@@ -38,7 +38,7 @@ var productConnectionNotificationTimeout = null;
 
 function connectToCurrentProduct() {
 	// Although the UI markup and assets are served over HTTP directly from the product, WebSocket protocol is then used for realtime communication between the UI and the product.
-	productAddress = window.location.host;
+	productAddress = 'hifiberry.local';//window.location.host;
 	//if (productAddress.indexOf(":") == -1) productAddress += ":80";
 	if (!simulation && productAddress) connectProduct();
 	//beo.notify(false, "connection");

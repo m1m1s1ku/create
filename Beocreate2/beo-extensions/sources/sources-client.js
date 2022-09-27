@@ -243,17 +243,20 @@ function toggleArrange() {
 
 function updateAliases() {
 	for (extension in allSources) {
+		const extensionConfig = extensions[extension];
+
 		if (allSources[extension].alias && allSources[extension].alias.icon) {
 			icon = extensions.sources.assetPath+"/symbols-black/"+allSources[extension].alias.icon;
 		} else {
-			icon = extensions[extension].assetPath+"/symbols-black/"+extensions[extension].icon;
+			if(!extension) { continue; }
+			icon = extensionConfig?.assetPath+"/symbols-black/"+extensionConfig?.icon;
 		}
 		beo.setSymbol('.menu-item[data-extension-id="'+extension+'"] .menu-icon:not(.right)', icon);
 		if (allSources[extension].alias && allSources[extension].alias.name) {
 			$('.menu-item[data-extension-id="'+extension+'"] .menu-label').text(allSources[extension].alias.name);
 			$("#"+extension+" .source-alias-control .menu-value").text(allSources[extension].alias.name).removeClass("button");
 		} else {
-			$('.menu-item[data-extension-id="'+extension+'"] .menu-label').text(extensions[extension].title);
+			$('.menu-item[data-extension-id="'+extension+'"] .menu-label').text(extensionConfig?.title);
 			$("#"+extension+" .source-alias-control .menu-value").text("Set...").addClass("button");
 		}
 	}
