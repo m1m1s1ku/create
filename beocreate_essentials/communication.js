@@ -47,8 +47,8 @@ function BeoCom() {
 
 inherits(BeoCom, eventEmitter);
 
-BeoCom.prototype.startSocket = function(options, callback) {
-	self = this;
+BeoCom.prototype.startSocket = (options, callback) => {
+	let self = this;
 	
 	if (!options) options = {};
 	
@@ -89,8 +89,6 @@ BeoCom.prototype.startSocket = function(options, callback) {
 	}
 	
 	socket.on('request', function(request) {
-		
-		
 		if (request.requestedProtocols) {
 			if (acceptedProtocols.indexOf(request.requestedProtocols[0]) != -1) {
 				protocol = request.requestedProtocols[0];

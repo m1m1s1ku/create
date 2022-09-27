@@ -22,7 +22,7 @@ SOFTWARE.*/
 import { exec } from 'child_process';
 import fs from 'fs';
 
-var pi_system_tools = module.exports = {
+export default {
 	getHostname: getHostname,
 	setHostname: setHostname,
 	getSerial: getSerial,

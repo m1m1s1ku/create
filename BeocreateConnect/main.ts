@@ -137,14 +137,9 @@ if (process.platform === 'darwin') {
 const menu = Menu.buildFromTemplate(template as any);
 Menu.setApplicationMenu(menu);
 
-
-// WINDOW
+let win
   
-  // Keep a global reference of the window object, if you don't, the window will
-  // be closed automatically when the JavaScript object is garbage collected.
-  let win
-  
-  function createWindow () {
+function createWindow () {
     // Create the browser window.
 	let mainWindowState = windowStateKeeper({
 	    defaultWidth: 820,
@@ -164,22 +159,17 @@ Menu.setApplicationMenu(menu);
 		height: mainWindowState.height, 
 		minWidth: 450, 
 		minHeight: 300, 
-		//acceptFirstMouse: true, 
 		titleBarStyle: "hiddenInset", 
 		title: "Beocreate Connect",
 		frame: false,
 		show: false,
 		fullscreenWindowTitle: true,
-		//vibrancy: "sidebar",
-		//fullscreenable: false,
 		backgroundColor: '#FFFFFF', 
-		//transparent: true,
 		webPreferences: { experimentalFeatures: false, nodeIntegration: true, contextIsolation: false,}
 	});
 	
 	mainWindowState.manage(win);
   
-    // and load the index.html of the app.
     win.loadFile('index.html')
     
     win.webContents.on('did-finish-load', () => {
@@ -194,23 +184,13 @@ Menu.setApplicationMenu(menu);
 				startCheckingIPAddress();
 				startManualDiscovery();
 			}, 500);
-			
 		}, 100);
     })
-	
-	win.once('ready-to-show', () => {
-		//console.log("Showing window.");
-		//win.show();
-	})
   
     // Open the DevTools.
-    //win.webContents.openDevTools()
+    win.webContents.openDevTools()
   
-    // Emitted when the window is closed.
     win.on('closed', () => {
-      // Dereference the window object, usually you would store windows
-      // in an array if your app supports multi windows, this is the time
-      // when you should delete the corresponding element.
 	  win = null;
 	  stopManualDiscovery();
 	  clearInterval(ipCheckInterval);
@@ -219,14 +199,8 @@ Menu.setApplicationMenu(menu);
     
     win.on('focus', () => {
     	win.webContents.send('windowEvent', "activate");
-		/*if (browser) {
-			console.log("Products discovered: "+browser.list().length);
-		} else {
-			console.log("No browser.");
-		}*/
 		refreshProducts(null);
 		activeWindow = true;
-		//if (products.length == 0) startDiscovery();
     });
     
     win.on('blur', () => {
@@ -248,38 +222,20 @@ Menu.setApplicationMenu(menu);
 	});
 }
   
-  // This method will be called when Electron has finished
-  // initialization and is ready to create browser windows.
-  // Some APIs can only be used after this event occurs.
-  app.on('ready', createWindow)
-  
-  
-  // Quit when all windows are closed.
-  app.on('window-all-closed', () => {
-    // On macOS it is common for applications and their menu bar
-    // to stay active until the user quits explicitly with Cmd + Q
-    if (process.platform !== 'darwin') {
-      app.quit()
-    }
-  })
-  
-  app.on('activate', () => {
-    // On macOS it's common to re-create a window in the app when the
-    // dock icon is clicked and there are no other windows open.
-    if (win === null) {
-      createWindow();
-    }
-    
-  })
-  
-  app.on('before-quit', () => {
-    // On macOS it's common to re-create a window in the app when the
-    // dock icon is clicked and there are no other windows open.
-    
-	console.log("Quitting.");
-    
-  })
+app.on('ready', createWindow)
 
+app.on('window-all-closed', () => {
+	if (process.platform !== 'darwin') {
+		app.quit()
+	}
+})
+
+app.on('activate', () => {
+	if (win === null) {
+		createWindow();
+	}
+})
+  
 
 // DARK / LIGHT MODE
 if (process.platform == "darwin" && win) {
@@ -437,7 +393,7 @@ ipcMain.on("refreshProducts", (event, arg) => {
 let manuallyDiscoveredProduct = null;
 let manualDiscoveryInterval: string | number | NodeJS.Timeout;
 let manualDiscoveryAddress = "10.0.0.1";
-async function discoverProductAtAddress(address) {
+async function discoverProductAtAddress(address: string): Promise<void> {
 	if (bonjourProductCount == 0) {
 		const { fetch } = await import('got-fetch');
 		fetch('http://'+address+'/product-information/discovery').then(res => {
@@ -456,7 +412,7 @@ async function discoverProductAtAddress(address) {
 				}
 			}
 		}).catch(err => {
-			//console.error("Manual product discovery unsuccessful")
+			console.error("Manual product discovery unsuccessful", err)
 		});
 	} else {
 		if (manuallyDiscoveredProduct != null) {
@@ -466,7 +422,7 @@ async function discoverProductAtAddress(address) {
 	}
 }
 
-function startManualDiscovery() {
+function startManualDiscovery(): void {
 	manuallyDiscoveredProduct = null;
 	clearInterval(manualDiscoveryInterval);
 	discoverProductAtAddress(manualDiscoveryAddress);
@@ -475,12 +431,12 @@ function startManualDiscovery() {
 	}, 10000);
 }
 
-function stopManualDiscovery() {
+function stopManualDiscovery(): void {
 	clearInterval(manualDiscoveryInterval);
 }
 
 let ipCheckInterval: string | number | NodeJS.Timeout;
-function startCheckingIPAddress() {
+function startCheckingIPAddress(): void {
 	hasIPChanged();
 	ipCheckInterval = setInterval(function() {
 		if (activeWindow) {
@@ -492,8 +448,8 @@ function startCheckingIPAddress() {
 	}, 10000);
 }
 
-let oldIPs = [];
-function hasIPChanged() {
+let oldIPs: string[] = [];
+function hasIPChanged(): boolean {
 	let ifaces = networkInterfaces();
 	let newIPs = []
 	for (let iface in ifaces) {
@@ -511,27 +467,24 @@ function hasIPChanged() {
 	}
 }
 
-// attach the .equals method to Array's prototype to call it on any array
-function equals(array) {
-    // if the other array is a falsy value, return
-    if (!array)
-        return false;
+function equals(array: unknown[]): boolean {
+    if (!array){
+		return false;
+	}
 
-    // compare lengths - can save a lot of time 
-    if (this.length != array.length)
+    if (this.length != array.length) {
         return false;
+	}
 
     for (let i = 0, l=this.length; i < l; i++) {
-        // Check if we have nested arrays
         if (this[i] instanceof Array && array[i] instanceof Array) {
-            // recurse into the nested arrays
-            if (!this[i].equals(array[i]))
-                return false;       
-        }           
-        else if (this[i] != array[i]) { 
-            // Warning - two different object instances will never be equal: {x:20} != {x:20}
-            return false;   
-        }           
-    }       
+            if (!this[i].equals(array[i])) {
+                return false;
+			}
+        } else if (this[i] != array[i]) {
+            return false;
+        }
+    }
+
     return true;
 }

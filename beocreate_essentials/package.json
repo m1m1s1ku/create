@@ -3,6 +3,7 @@
   "version": "1.3.0",
   "description": "Essential tools for sound systems based on BeoCreate 4-Channel Amplifier.",
   "main": "beocreate_essentials.js",
+  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

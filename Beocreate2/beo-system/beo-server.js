@@ -36,16 +36,18 @@ import EventEmitter from 'eventemitter3';
 import aplay from 'aplay';
 import _ from 'underscore';
 
-import beoCom from '../beocreate_essentials/communication';
-import piSystem from '../beocreate_essentials/pi_system_tools';
+import BeoCom from '../../beocreate_essentials/communication.js';
+import piSystem from '../../beocreate_essentials/pi_system_tools.js';
+import { dirname } from 'path';
 
 // Beocreate Essentials
-var beoCom = beoCom();
+const beoCom = BeoCom();
 
-import { version as systemVersion } from './package.json';
+const systemVersion = "2.4.4";
+
 // END DEPENDENCIES
 
-var defaultSystemConfiguration = {
+const defaultSystemConfiguration = {
 	"cardType": "Beocreate 4-Channel Amplifier",
 	"cardFeatures": [],
 	"port": 80,
@@ -54,7 +56,7 @@ var defaultSystemConfiguration = {
 	"defaultAppearance": "default",
 	"customisationPath": "/custom/beocreate"
 };
-var systemConfiguration = JSON.parse(JSON.stringify(defaultSystemConfiguration));
+const systemConfiguration = JSON.parse(JSON.stringify(defaultSystemConfiguration));
 
 var defaultUISettings = {
 	"disclosure": {}
@@ -69,8 +71,8 @@ var systemStatus = "normal";
 */
 var extensionsRequestingShutdownTime = [];
 
-systemDirectory = __dirname;
-dataDirectory = "/etc/beocreate"; // Data directory for settings, sound presets, product images, etc.
+let systemDirectory = dirname('.');
+let dataDirectory = "./etc/beocreate"; // Data directory for settings, sound presets, product images, etc.
 
 var debugMode = false;
 var daemonMode = false;
@@ -84,7 +86,7 @@ console.log("Beocreate 2 ("+systemVersion+"), copyright 2017-2021 Bang & Olufsen
 
 
 // CHECK COMMAND LINE ARGUMENTS
-cmdArgs = process.argv.slice(2);
+let cmdArgs = process.argv.slice(2);
 if (cmdArgs.indexOf("v") != -1) debugMode = 1;
 if (cmdArgs.indexOf("vv") != -1) debugMode = 2;
 if (cmdArgs.indexOf("vvv") != -1) debugMode = 3;
@@ -176,8 +178,9 @@ beoBus.on('general', function(event) {
 
 // GET AND STORE SETTINGS
 
-settingsToBeSaved = {};
-settingsSaveTimeout = null;
+let settingsToBeSaved = {};
+let settingsSaveTimeout = null;
+let settings = null;
 
 beoBus.on("settings", function(event) {
 	// Handles the saving and retrieval of configuration files for extensions.
@@ -276,12 +279,12 @@ function getAllSettings() {
 
 // LOAD SYSTEM SETTINGS
 // Contains sound card type, port to use, possibly disabled extensions.
-tempSystemConfiguration = getSettings('system');
+let tempSystemConfiguration = getSettings('system');
 if (tempSystemConfiguration != null) systemConfiguration = Object.assign(systemConfiguration, tempSystemConfiguration);
 
 
 // Load UI settings.
-tempUISettings = getSettings('ui');
+let tempUISettings = getSettings('ui');
 if (tempUISettings != null) uiSettings = Object.assign(uiSettings, tempUISettings);
 
 
@@ -377,7 +380,7 @@ if (useHTTPS) {
 beoServer.listen(systemConfiguration.port); // Listen on the HTTP port.
 
 
-etags = (developerMode) ? false : true; // Disable etags (caching) when running with debug.
+let etags = (developerMode) ? false : true; // Disable etags (caching) when running with debug.
 expressServer.use("/common", express.static(systemDirectory+"/common", {etag: etags})); // For common system assets.
 if (customisations) expressServer.use("/extensions", express.static(systemConfiguration.customisationPath+"/beo-extensions-override", {etag: etags})); // For customisation overrides/additions.
 expressServer.use("/extensions", express.static(dataDirectory+"/beo-extensions", {etag: etags})); // For user extensions.
@@ -552,13 +555,13 @@ beoBus.on('dsp', function(event) {
 
 async function loadAllServerExtensions() {
 	
-	menuName = "menu";
+	let menuName = "menu";
 		
-	masterList = {};
+	let masterList = {};
 	
 	if (fs.existsSync(extensionsPath)) {
-		extensionsNames = fs.readdirSync(extensionsPath);
-		for (var i = 0; i < extensionsNames.length; i++) {
+		let extensionsNames = fs.readdirSync(extensionsPath);
+		for (let i = 0; i < extensionsNames.length; i++) {
 			if (extensionsNames[i].charAt(0) != ".") {
 				masterList[extensionsNames[i]] = {userExtension: false, basePath: extensionsPath};
 			}
@@ -566,8 +569,8 @@ async function loadAllServerExtensions() {
 	}
 	
 	if (fs.existsSync(userExtensionsPath)) {
-		extensionsNames = fs.readdirSync(userExtensionsPath);
-		for (var i = 0; i < extensionsNames.length; i++) {
+		let extensionsNames = fs.readdirSync(userExtensionsPath);
+		for (let i = 0; i < extensionsNames.length; i++) {
 			if (extensionsNames[i].charAt(0) != ".") {
 				if (!masterList[extensionsNames[i]] || systemConfiguration.preferUserExtensions) {
 					if (masterList[extensionsNames[i]]) {
@@ -581,7 +584,7 @@ async function loadAllServerExtensions() {
 	}
 	
 	// Load all extensions.
-	for (extensionName in masterList) {
+	for (let extensionName in masterList) {
 		await loadExtensionWithPath(extensionName, masterList[extensionName].userExtension, menuName, "extensions");
 	}
 	
@@ -593,7 +596,7 @@ async function loadExtensionWithPath(extensionName, userExtension, menuName, bas
 	// Mode 0: Load only server-side code.
 	// Mode 1: Load UI for this appearance.
 	
-	shouldLoad = await shouldLoadExtension(0, extensionName, userExtension, menuName);
+	let shouldLoad = await shouldLoadExtension(0, extensionName, userExtension, menuName);
 	
 	if (!shouldLoad) return null;
 	
@@ -618,12 +621,11 @@ async function loadExtensionWithPath(extensionName, userExtension, menuName, bas
 
 
 async function shouldLoadExtension(mode, extensionName, userExtension, menuName = null) {
-	
 	// Mode 0: Load check for server-side code.
 	// Mode 1: Check for UI existence.
 	
 	if (menuName == null) menuName = "menu";
-	var excludedBySystemConfig = false;
+	let excludedBySystemConfig = false;
 	
 	if (systemConfiguration.enabledExtensions && systemConfiguration.enabledExtensions.length > 0) {
 		if (systemConfiguration.enabledExtensions.indexOf(extensionName) != -1) {
@@ -638,7 +640,7 @@ async function shouldLoadExtension(mode, extensionName, userExtension, menuName 
 		}
 	}
 	
-	var excludedByCustomisation = false;
+	let excludedByCustomisation = false;
 	if (customisations && 
 		customisations.disabledExtensions &&
 		customisations.disabledExtensions.length > 0) {
@@ -650,11 +652,12 @@ async function shouldLoadExtension(mode, extensionName, userExtension, menuName 
 	
 	if (excludedByCustomisation) return false;
 	
-	paths = [
+	let paths = [
 		(!userExtension) ? extensionsPath+"/"+extensionName : userExtensionsPath+"/"+extensionName,
 		(userExtension) ? extensionsPath+"/"+extensionName : userExtensionsPath+"/"+extensionName
 	];
 	
+	let packageJSON;
 	try {
 		packageJSON = await import(paths[0]+"/package.json");
 	} catch (error) {
@@ -667,7 +670,7 @@ async function shouldLoadExtension(mode, extensionName, userExtension, menuName 
 	
 	// First check if this extension is included or excluded with this product.
 	
-	shouldIncludeExtension = true;
+	let shouldIncludeExtension = true;
 	
 	if (packageJSON && packageJSON.beocreate) {
 		// Check support/unsupport for card/features from package.json file.
@@ -715,7 +718,7 @@ async function shouldLoadExtension(mode, extensionName, userExtension, menuName 
 	
 	
 	if (mode == 0) {
-		fullPath = paths[0];
+		let fullPath = paths[0];
 		try {
 			require.resolve(fullPath);
 		}
@@ -832,7 +835,7 @@ async function loadAppearance(appearance) {
 		
 		// Load the markup for all extensions.
 		for (extensionName in masterList) {
-			shouldLoad = await shouldLoadExtension(1, extensionName, masterList[extensionName].userExtension, menuName);
+			let shouldLoad = await shouldLoadExtension(1, extensionName, masterList[extensionName].userExtension, menuName);
 			if (shouldLoad) {
 				extensionsListClient[extensionName] = {assetPath: "/extensions/"+extensionName};
 				
@@ -1007,8 +1010,8 @@ var startupSoundPlayed = false;
 var productSound = null;
 function playProductSound(sound) {
 	
-	soundDirectory = systemDirectory+"/sounds/";
-	soundPath = null;
+	let soundDirectory = systemDirectory+"/sounds/";
+	let soundPath = null;
 	switch (sound) {
 		case "startup":
 			if (systemConfiguration.cardType.indexOf("Beocreate") != -1) soundPath = soundDirectory+"startup.wav";

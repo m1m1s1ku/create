@@ -3,6 +3,7 @@
   "version": "2.4.4",
   "description": "Software for Beocreate sound systems",
   "main": "beo-server.js",
+  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -23,6 +24,6 @@
     "aplay": "^1.2.0",
     "eventemitter3": "^4.0.7",
     "express": "^4.18.1",
-	  "underscore": "^1.13.6"
+    "underscore": "^1.13.6"
   }
 }
