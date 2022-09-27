@@ -58,7 +58,6 @@ for(const clickableItem of Array.from(clickableItems)) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-	// FASTCLICK
 	if(inElectron) {
 		document.body.classList.add('electron');
 	}
