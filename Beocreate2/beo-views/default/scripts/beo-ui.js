@@ -265,14 +265,16 @@ let beo = (function() {
 				}
 				if (!hideExtension) {
 					if (context[1]) {
-						if ($(".menu-screen#"+context[0]+" .beo-dynamic-menu."+context[1])) {
-							$(".menu-screen#"+context[0]+" .beo-dynamic-menu."+context[1]).append(createMenuItem(menuOptions));
+						const dynamicMenu = document.querySelector(".menu-screen#"+context[0]+" .beo-dynamic-menu."+context[1]);
+						if (dynamicMenu) {
+							dynamicMenu.appendChild(createElementFromHTML(createMenuItem(menuOptions)));
 							extensionPlaced = true;
 						}
 					}
+					const dynamicMenuMain = document.querySelector(".menu-screen#"+context[0]+" .beo-dynamic-menu");
 					if (!extensionPlaced && 
-						$(".menu-screen#"+context[0]+" .beo-dynamic-menu")) {
-						$(".menu-screen#"+context[0]+" .beo-dynamic-menu").append(createMenuItem(menuOptions));
+						dynamicMenuMain) {
+						dynamicMenuMain.appendChild(createElementFromHTML(createMenuItem(menuOptions)));
 						extensionPlaced = true;
 					}
 				} else {
@@ -288,9 +290,9 @@ let beo = (function() {
 					namespace: (theExtension.attributes["data-namespace"]) ? theExtension.attributes["data-namespace"].value : null
 				});
 				if (theExtension.attributes["data-menu-title-short"]) extensions[extensionName].shortTitle = theExtension.attributes["data-menu-title-short"].value;
-				
-				$(".menu-screen#"+extensionName+" .scroll-area").first().prepend('<h1 class="large-title">'+$(".menu-screen#"+extensionName+" header h1").first().text()+'</h1>'); // Duplicate title for views that use a large title.
-				
+				const firstChild = document.querySelector(".menu-screen#"+extensionName+" .scroll-area").firstChild;
+				firstChild.innerHTML = '<h1 class="large-title">'+$(".menu-screen#"+extensionName+" header h1").first().text()+'</h1>' + firstChild.innerHTML; 
+								
 				let deepMenus = document.querySelectorAll('.menu-screen[data-parent-extension="'+extensionName+'"]');
 				for (let d of deepMenus) {
 					extensions[extensionName].deepMenu.push(d.id);
@@ -310,7 +312,9 @@ let beo = (function() {
 			mainMenuExtension = document.querySelector(".beo-dynamic-menu.main-menu").closest(".menu-screen").attributes.id.value;
 		}
 		if (navDestination == 0) {
-			$("nav.bar .nav-content").append('<div class="nav-spacer begin"></div>');
+			const navSpacer = document.createElement('div');
+			navSpacer.className = "nav-spacer begin";
+			document.querySelector('nav.bar .nav-content').appendChild(navSpacer);
 		}
 		// 0 = Menus go to the top navigation bar as before, 1 = menus go to the "main menu" space inside an extension. Top navigation bar is then populated with shortcuts.
 		
@@ -357,13 +361,20 @@ let beo = (function() {
 						hideExtension = true; // Skip adding this extension if it's hidden.
 					}
 					if (!hideExtension) {
-						
 						if (navDestination == 0) {
-							$("nav.full .nav-content").append(createMenuItem(menuOptions));
-							$("nav.bar .nav-content").append('<div class="nav-item '+menuOptions.labelClasses.join(" ")+'" data-extension-id="'+menuOptions.data['data-extension-id']+'" onclick="beo.showExtension(\''+navigation[n].name+'\');">'+menuOptions.label+'</div>');
+							
+							document.querySelector('nav.full .nav-content').appendChild(createElementFromHTML(createMenuItem(menuOptions)));
+							const destinationNode = document.createElement('div');
+							destinationNode.classList.add('nav-item', ...menuOptions.labelClasses);
+							destinationNode.dataset.extensionId = menuOptions.data['data-extension-id'];
+							destinationNode.addEventListener('click', function(e) {
+								beo.showExtension(navigation[n].name);
+							});
+							destinationNode.innerText = menuOptions.label;
+							document.querySelector('nav.bar .nav-content').appendChild(destinationNode);
 						} else if (navDestination == 1 && !isMainMenu) {
 							menuOptions.chevron = true;
-							$(".beo-dynamic-menu.main-menu").append(createMenuItem(menuOptions));
+							document.querySelector('.beo-dynamic-menu.main-menu').appendChild(createElementFromHTML(createMenuItem(menuOptions)));
 						}
 					}
 					
@@ -376,15 +387,21 @@ let beo = (function() {
 					});
 					
 					if (!isMainMenu && mainMenuExtension) extensions[navigation[n].name].parentMenu = mainMenuExtension;
-					
-					$(".menu-screen#"+navigation[n].name+" .scroll-area").first().prepend('<h1 class="large-title">'+$(".menu-screen#"+navigation[n].name+" header h1").first().text()+'</h1>'); // Duplicate title for views that use a large title.
+					const extensionName = navigation[n].name;
+					const firstChild = document.querySelector(".menu-screen#"+extensionName+" .scroll-area").firstChild;
+					const text = document.querySelector(".menu-screen#"+extensionName+" header h1")?.firstChild.textContent;
+					firstChild.innerHTML = '<h1 class="large-title">'+text+'</h1>' + firstChild.innerHTML; 
 				}
 			} else {
 				if (navDestination == 0) {
-					$("nav.full .nav-content").append('<hr>');
-					$("nav.bar .nav-content").append('<div class="nav-separator"></div>');
+					const hashr = document.createElement('hr');
+					document.querySelector('nav.full .nav-content').appendChild(hashr);
+					const navSeparator = document.createElement('div');
+					navSeparator.classList.add('nav-separator');
+					document.querySelector('nav.bar .nav-content').appendChild(navSeparator);
 				} else if (navDestination == 1 && !isMainMenu) {
-					$(".beo-dynamic-menu.main-menu").append('<hr>');
+					const hashr = document.createElement('hr');
+					document.querySelector('.beo-dynamic-menu.main-menu').appendChild(hashr);
 				}
 			}
 		}
@@ -392,10 +409,15 @@ let beo = (function() {
 		if (navDestination == 1) {
 			prepareFavourites();
 		} else {
-			$("nav.bar .nav-content").append('<div class="nav-spacer end"></div>');
+			const navSpacer = document.createElement('div');
+			navSpacer.classList.add('nav-spacer', 'end');
+
+			document.querySelector('nav.bar .nav-content').appendChild(navSpacer);
 		}
 		
-		$(document).trigger("ui", {header: "menusReady"});
+		document.dispatchEvent(new CustomEvent('ui', {
+			header: "menusReady",
+		}));
 		console.log("Menus ready.");
 	}
 
@@ -443,14 +465,21 @@ let beo = (function() {
 			}
 		}
 		
-		$(".nav-mode-name").text(setName);
+		document.querySelector('.nav-mode-name').innerText = setName;
 		
 		let previousKind = null;
 		if (favourites[0].name && favourites[0].name != mainMenuExtension) {
 			favourites.unshift({kind: "extension", name: mainMenuExtension}, {kind: "separator"});
 		}
-		$("nav.bar .nav-content, nav.full .nav-content").empty();
-		$("nav.bar .nav-content").append('<div class="nav-spacer begin"></div>');
+		const items = Array.from(document.querySelectorAll('nav.bar .nav-content, nav.full .nav-content'));
+		for(const item of items) {
+			item.innerHTML = "";
+		}
+		const navSpacerBegin = document.createElement('div');
+		navSpacerBegin.className = "nav-spacer begin";
+
+		document.querySelector('nav.bar .nav-content').appendChild(navSpacerBegin);
+
 		for (let f in favourites) {
 			if (favourites[f].kind == "extension") {
 				if (customisations && 
@@ -476,34 +505,50 @@ let beo = (function() {
 					menuOptions.label = theExtension.attributes["data-menu-title"].value;
 					
 					if (!theExtension.attributes["data-hidden"]) {
-						$("nav.full .nav-content").append(createMenuItem(menuOptions));
-						$("nav.bar .nav-content").append('<div class="nav-item '+menuOptions.labelClasses.join(" ")+'" data-extension-id="'+menuOptions.data['data-extension-id']+'" onclick="beo.showExtension(\''+fav+'\');">'+menuOptions.label+'</div>');
+						document.querySelector('nav.full .nav-content').appendChild(createElementFromHTML(createMenuItem(menuOptions)));
+
+						const navItem = document.createElement('div');
+						navItem.className = "nav-item "+menuOptions.labelClasses.join(" ");
+						navItem.dataset.extensionId = menuOptions.data['data-extension-id'];
+						navItem.innerText = menuOptions.label;
+						navItem.addEventListener('click', function(e) {
+							beo.showExtension(fav);
+						});
+
+						document.querySelector('nav.bar .nav-content').appendChild(navItem);
 					}
 
 				}
 				previousKind = "extension";
 			} else {
 				if (previousKind && previousKind != "separator") {
-					$("nav.full .nav-content").append('<hr>');
-					$("nav.bar .nav-content").append('<div class="nav-separator"></div>');
+					document.querySelector('nav.full .nav-content').appendChild(document.createElement('hr'));
+					const navSeparator = document.createElement('div');
+					navSeparator.classList.add('nav-separator');
+					document.querySelector('nav.bar .nav-content').appendChild(navSeparator);
 				}
 				previousKind = "separator";
 			}
 		}
-		$("nav.bar .nav-content").append('<div class="nav-spacer end"></div>');
+		const navSpacerEnd = document.createElement('div');
+		navSpacerEnd.classList.add('nav-spacer', 'end');
+		document.querySelector('nav.bar .nav-content').appendChild(navSpacerEnd);
 		
 		for (let i = 0; i < navigationSets.length; i++) {
 			if (!navigationSets[i].hideFromShortcuts) selectableNavSets++;
 		}
 		if (selectableNavSets > 1) {
-			$("nav.bar, nav.full").addClass("show-mode-button");
+			const navItems = Array.from(document.querySelectorAll('nav.bar, nav.full'));
+			for(const item of navItems) {
+				item.classList.add("show-mode-button");
+			}
 		}
 	}
 
 	function chooseNavigationMode(mode) {
 		if (mode == undefined) {
 			let navSetID;
-			$("#navigation-mode-list").empty();
+			document.querySelector('#navigation-mode-list').innerHTML = "";
 			if (localStorage.beocreateSelectedNavigationSet) {
 				navSetID = localStorage.beocreateSelectedNavigationSet;
 			} else {
@@ -529,13 +574,13 @@ let beo = (function() {
 						}
 						if (navigationSets[i].description) setDescription = navigationSets[i].description;
 					}
-					$("#navigation-mode-list").append(createMenuItem({
+					document.querySelector('#navigation-mode-list').appendChild(createElementFromHTML(createMenuItem({
 						label: setName,
 						description: setDescription,
 						onclick: 'beo.chooseNavigationMode(\''+navigationSets[i].id+'\');',
 						checkmark: "left",
 						checked: (navigationSets[i].id == navSetID)
-					}));
+					})));
 				}
 			}
 			ask("navigation-mode-menu");
@@ -544,7 +589,9 @@ let beo = (function() {
 			localStorage.beocreateSelectedNavigationSet = mode;
 			prepareFavourites(mode);
 			showSelectedNavItem();
-			$(document).trigger("ui", {header: "navigationChanged"});
+			document.dispatchEvent(new CustomEvent('ui', {
+				header: 'navigationChanged',
+			}));
 		}
 	}
 
@@ -556,6 +603,7 @@ let beo = (function() {
 			configuredTabs = JSON.parse(localStorage.beoConfiguredTabs);
 		} else {
 			let tabIndex = 0;
+
 			$("nav.full .menu-item").each(function() {
 				if (tabIndex < 4) {
 					configuredTabs.push($(this).attr("data-extension-id"));
@@ -1314,7 +1362,12 @@ let beo = (function() {
 
 		return menuItem;
 	}
+	function createElementFromHTML(htmlString) {
+		const div = document.createElement('div');
+		div.innerHTML = htmlString.trim();
 
+		return div.firstChild;
+	}
 	function createCollectionItem(options) {
 		// Assembles collection item markup from input, ensuring consistency.
 		let collectionItem = '<div class="collection-item ';

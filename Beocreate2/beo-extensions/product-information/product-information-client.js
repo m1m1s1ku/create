@@ -18,14 +18,14 @@ var productIdentities = {};
 var productImageShowTimeout = null;
 
 $(document).on("general", function(event, data) {
-	if (data.header == "connection") {
-		if (data.content.status == "connected") {
+	if (data?.header == "connection") {
+		if (data?.content?.status == "connected") {
 			beo.send({target: "product-information", header: "getBasicProductInformation"});
 		}
 	}
 	
-	if (data.header == "activatedExtension") {
-		if (data.content.extension == "product-information") {
+	if (data?.header == "activatedExtension") {
+		if (data?.content?.extension == "product-information") {
 			clearTimeout(productImageShowTimeout);
 			productImageShowTimeout = setTimeout(function() {
 				$(".product-overview-image").addClass("visible");
@@ -41,7 +41,7 @@ $(document).on("general", function(event, data) {
 });
 
 $(document).on("product-information", function(event, data) {
-	if (data.header == "showProductIdentity") {
+	if (data?.header == "showProductIdentity") {
 		systemName = data.content.systemName;
 		modelName = data.content.modelName;
 		modelID = data.content.modelID;
@@ -57,7 +57,7 @@ $(document).on("product-information", function(event, data) {
 		hideOrShowModelNameWithSystemName();
 	}
 	
-	if (data.header == "showProductModel") {
+	if (data?.header == "showProductModel") {
 		modelName = data.content.modelName;
 		modelID = data.content.modelID;
 		productImage = data.content.productImage;
@@ -70,7 +70,7 @@ $(document).on("product-information", function(event, data) {
 		hideOrShowModelNameWithSystemName();
 	}
 	
-	if (data.header == "basicProductInformation") {
+	if (data?.header == "basicProductInformation") {
 		systemType = data.content.systemType;
 		systemName = data.content.systemName;
 		$(".system-name").text(systemName);
@@ -111,7 +111,7 @@ $(document).on("product-information", function(event, data) {
 		hideOrShowModelNameWithSystemName();
 	}
 	
-	if (data.header == "showSystemName") {
+	if (data?.header == "showSystemName") {
 		systemName = data.content.systemName;
 		$(".system-name").text(systemName);
 		staticName = data.content.staticName;
@@ -135,7 +135,7 @@ $(document).on("product-information", function(event, data) {
 		hideOrShowModelNameWithSystemName();
 	}
 	
-	if (data.header == "allProductIdentities" && data.content.identities) {
+	if (data?.header == "allProductIdentities" && data.content.identities) {
 		productIdentities = data.content.identities;
 		$(".product-identity-collection").empty();
 		
@@ -157,14 +157,14 @@ $(document).on("product-information", function(event, data) {
 		}
 	}
 	
-	if (data.header == "askToRestartAfterSystemNameChange") {
+	if (data?.header == "askToRestartAfterSystemNameChange") {
 		beo.ask("product-name-restart-prompt");
 	}
 	
 });
 
 $(document).on("ui", function(event, data) {
-	if (data.header == "navigationChanged") {
+	if (data?.header == "navigationChanged") {
 		$(".system-name").text(systemName); // Reinstate system name to the navigation items when they change.
 	}
 });

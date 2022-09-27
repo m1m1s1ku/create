@@ -241,7 +241,7 @@ var focusedSource = null;
 var currentSource = null;
 
 $(document).on("general", function(event, data) {
-	if (data.header == "connection") {
+	if (data?.header == "connection") {
 		if (data.content.status == "connected") {
 			beo.sendToProduct("now-playing", "useExternalArtwork");
 		}
@@ -252,14 +252,14 @@ $(document).on("general", function(event, data) {
 var loveAnimTimeout;
 $(document).on("now-playing", function(event, data) {
 	
-	if (data.header == "useExternalArtwork") {
+	if (data?.header == "useExternalArtwork") {
 		if (data.content.useExternalArtwork) {
 			setUseExternalArtwork(data.content.useExternalArtwork, true);
 //			updateMetadata();
 		}
 	}
 
-	if (data.header == "queue") {
+	if (data?.header == "queue") {
 		if (data.content.source == focusedSource) {
 			// Only allow queue to come in from the focused source.
 			nowPlayingController.queueSource = focusedSource;
@@ -277,7 +277,7 @@ $(document).on("now-playing", function(event, data) {
 });
 
 $(document).on("sources", function(event, data) {
-	if (data.header == "sources") {
+	if (data?.header == "sources") {
 		
 		
 		clearTimeout(playButtonSymbolTimeout);
@@ -673,7 +673,7 @@ function createTextScroller(i, textWidth, intervalDelay) {
 $(document).on("ui", function(event, data) {
 	
 	
-	if (data.header == "windowResized") {
+	if (data?.header == "windowResized") {
 		evaluateTextScrolling();
 	}
 	

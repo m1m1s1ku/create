@@ -6,7 +6,7 @@ var systemVolume = null;
 var adjustingSystemVolume = false;
 
 $(document).on("ui", function(event, data) {
-	if (data.header == "menusReady") {
+	if (data?.header == "menusReady") {
 		// Check which sound adjustments extensions have been placed into the menu, if any.
 		basics = $("#sound .beo-dynamic-menu.basic").children().length;
 		adjustments = $("#sound .beo-dynamic-menu.adjustments").children().length;
@@ -36,13 +36,13 @@ $(document).on("ui", function(event, data) {
 
 advancedModeChecked = false;
 $(document).on("general", function(event, data) {
-	if (data.header == "connection") {
+	if (data?.header == "connection") {
 		if (data.content.status == "connected") {
 			beo.send({target: "sound", header: "getVolume"});
 		}
 	}
 	
-	if (data.header == "activatedExtension") {
+	if (data?.header == "activatedExtension") {
 		if (extensions[data.content.extension].parentMenu == "sound" || data.content.extension == "sound") {
 			if (!advancedModeChecked) beo.sendToProduct("sound", {header: "advancedSoundAdjustmentsEnabled"});
 		}
@@ -50,13 +50,13 @@ $(document).on("general", function(event, data) {
 });
 
 $(document).on("sound", function(event, data) {
-	if (data.header == "advancedSoundAdjustmentsEnabled") {
+	if (data?.header == "advancedSoundAdjustmentsEnabled") {
 		if (data.content.enabled != undefined) {
 			showAdvancedSoundAdjustmentsEnabled(data.content.enabled);
 		}
 	}
 	
-	if (data.header == "systemVolume") {
+	if (data?.header == "systemVolume") {
 		if (data.content.volume != undefined) {
 			systemVolume = data.content.volume;
 			updateSystemVolumeSliders();
