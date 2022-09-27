@@ -35,10 +35,7 @@ let beo = (function() {
 	let os = getOS();
 	let inBeoApp = false;
 
-	$( document ).ready(function() {
-		// FASTCLICK
-		new FastClick(document.body);
-		
+	$( document ).ready(function() {	
 		if (("standalone" in window.navigator) && window.navigator.standalone){
 			$("body").addClass("standalone");
 		}
