@@ -407,6 +407,17 @@ ipcMain.on("refreshProducts", (event, arg) => {
 	startManualDiscovery();
 });
 
+function findProduct(name) {
+	return products[Object.keys(products).find(key => {
+		const product = products[key];
+		if(product.name === name) {
+			return key;
+		}
+
+		return null;
+	})];
+}
+
 let clientChannel = null;
 let sshInstance = null;
 let currentRouting = null;
@@ -430,27 +441,8 @@ function connectSSH() {
 		to: 'HiFiBerry',
 	};
 
-	const productKeys = Object.keys(products);
-
-	const source = productKeys.find(key => {
-		const product = products[key];
-		if(product.name === currentRouting.from) {
-			return key;
-		}
-
-		return null;
-	});
-
-	const destination = productKeys.find(key => {
-		const product = products[key];
-		if(product.name === currentRouting.to) {
-			return key;
-		}
-
-		return null;
-	});
-
-	console.warn('source', products[source], 'dest', products[destination]);
+	const source = findProduct(currentRouting.from);
+	const destination = findProduct(currentRouting.to);
 
 	const bitrate = "-f S24_LE";
 	const codec = "-t wav";
@@ -460,12 +452,12 @@ function connectSSH() {
 	const audioParams = `${bitrate} ${codec} ${samplingRate} ${channels}`;
 
 	return sshInstance.connect({
-		host: products[source].addresses[0],
+		host: source.addresses[0],
 		username: 'root',
 		password: 'hifiberry'
 	}).then(() => {
 		// @todo : Add settings to create this command dynamically.
-		return sshInstance.execCommand(`arecord -D plughw:0,0 ${audioParams} | ssh -C root@${products[destination].addresses[0]} -i rcaberry aplay ${audioParams}`, {
+		return sshInstance.execCommand(`arecord -D plughw:0,0 ${audioParams} | ssh -C root@${destination.addresses[0]} -i rcaberry aplay ${audioParams}`, {
 			// @note : hack, without this, channel.close don't work.
 			pty: true,
 			onChannel: (client) => {
