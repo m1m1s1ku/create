@@ -16,8 +16,7 @@
  "license": "MIT",
  "devDependencies": {
   "electron": "^20.2.0",
-  "electron-builder": "^23.3.3",
-  "node-hid": "^2.1.1"
+  "electron-builder": "^23.3.3"
  },
  "dependencies": {
   "@tsconfig/node16": "^1.0.3",
