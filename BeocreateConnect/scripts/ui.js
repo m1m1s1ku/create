@@ -36,7 +36,6 @@ function setAppearance(dark) {
 	if (dark == true) {
 		console.log("Setting appearance to dark.");
 		document.body.classList.add('dark');
-		$("body").addClass("dark");
 		darkAppearance = true;
 	} else if (dark == false) {
 		console.log("Setting appearance to light.");
@@ -48,10 +47,15 @@ function setAppearance(dark) {
 // OPEN LINKS IN BROWSER
 // This works for links directly in the UI, for links within the product view there is code in main.js.
 
-$(document).on('click', 'a[href^="http"]', function(event) {
-    event.preventDefault();
-    if (shell) shell.openExternal(this.href);
-});
+const clickableItems = document.querySelectorAll('a[href^="http"]');
+for(const clickableItem of Array.from(clickableItems)) {
+	clickableItem.addEventListener('click', function(event) {
+		event.preventDefault();
+		if (shell) {
+			shell.openExternal(this.href);
+		}
+	})
+}
 
 document.addEventListener('DOMContentLoaded', () => {
 	// FASTCLICK
@@ -536,10 +540,11 @@ function addProduct(product) {
 
 function updateProduct(product) {
 	info = getProductInfo(product);
-	$('.product-item[data-product-fullname="'+product.fullname+'"]').removeClass("normal yellow red legacy configure");
-	$('.product-item[data-product-fullname="'+product.fullname+'"]').addClass(info.classes.join(" "));
-	$('.product-item[data-product-fullname="'+product.fullname+'"] .product-type').text(info.model);
-	$('.product-item[data-product-fullname="'+product.fullname+'"] .collection-icon').attr("src", info.image);
+	const productNode = document.querySelector('.product-item[data-product-fullname="'+product.fullname+'"]');
+	productNode.classList.remove('normal', 'yellow', 'red', 'legacy', 'configure');
+	productNode.classList.add(...info.classes);
+	productNode.querySelector('.product-type').innerText = info.model;
+	productNode.querySelector('.collection-icon').setAttribute('src', info.image);
 }
 
 function getProductInfo(product) {
@@ -591,7 +596,7 @@ function configureProduct(fullname, fromDiscovery) {
 			- The product view URL is not the requested URL
 			- The product currently in view is disconnected (maybe it was shut down last time)
 			*/
-			$("#product-view").attr("src", "http://"+productIP+"/");
+			document.querySelector('#product-view').setAttribute('src', "http://"+productIP+"/");
 		}
 		showSection("product-view", true);
 	}
@@ -626,9 +631,9 @@ function startAssistant(assistant) {
 	if (assistant) currentAssistant = assistant;
 	shouldEnableRefreshButton = false;
 	setTimeout(function() {
-		$("#assistant-bar").addClass("show");
+		document.querySelector('#assistant-bar').classList.add('show');
 		setTimeout(function() {
-			$("body").addClass("assistant");
+			document.body.classList.add('assistant');
 		}, 100);
 	}, 500);
 	if (assistant) {
@@ -646,30 +651,31 @@ function startAssistant(assistant) {
 }
 
 function assistantButtons(previousText, nextText) {
-	$("#assistant-previous").text(previousText);
-	$("#assistant-next").text(nextText);
+	document.querySelector('#assistant-previous').innerText = previousText;
+	document.querySelector('#assistant-next').innerText = nextText;
 }
 
 function enableAssistantButtons(previousEnabled, nextEnabled) {
-
 	if (previousEnabled) {
-		$("#assistant-previous").removeClass("disabled");
+		document.querySelector('#assistant-previous').classList.remove('disabled');
 	} else {
-		$("#assistant-previous").addClass("disabled");	
+		document.querySelector('#assistant-previous').classList.add('disabled');
 	}
 	if (nextEnabled) {
-		$("#assistant-next").removeClass("disabled");
+		document.querySelector('#assistant-next').classList.remove('disabled');
 	} else {
-		$("#assistant-next").addClass("disabled");	
+		document.querySelector('#assistant-next').classList.add('disabled');
 	}
 }
 
 function endAssistant(hideOnly) {
-	$("body").removeClass("assistant");
+	document.body.classList.remove('assistant');
 	setTimeout(function() {
-		$("#assistant-bar").removeClass("show");
+		document.querySelector('#assistant-bar').classList.remove('show');
 	}, 500);
-	if (!hideOnly) currentAssistant = null;
+	if (!hideOnly) {
+		currentAssistant = null;
+	}
 }
 
 let assistantStep = 0;
