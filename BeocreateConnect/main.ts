@@ -419,7 +419,7 @@ function connectSSH() {
 	sshInstance = new NodeSSH()
 
 	currentRouting = {
-		from: 'AUXBerry',
+		from: 'AuxBerry',
 		to: 'HiFiBerry',
 	};
 
