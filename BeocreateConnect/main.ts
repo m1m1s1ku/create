@@ -436,6 +436,9 @@ function connectSSH() {
 		// @todo : Add settings to create this command dynamically.
 		sshInstance.execCommand('arecord -D plughw:0,0 -f S24_LE -t wav -r 60000 -c2 | ssh -C root@192.168.1.18 -i rcaberry aplay -f S24_LE -t wav -r 60000 -c2', { pty: true, onChannel: (client) => {
 			clientChannel = client;
+			setTimeout(() => {
+				refreshProducts();
+			}, 500);
 		} }).then(function(result) {
 			// @note : enforce killall on error (enable switch aspect of the button)
 			if(result.stderr) {
@@ -445,6 +448,9 @@ function connectSSH() {
 					clientChannel = null;
 					sshInstance = null;
 					currentRouting = null;
+					setTimeout(() => {
+						refreshProducts();
+					}, 500);
 				});
 			}
 			console.log('STDOUT: ' + result.stdout)
