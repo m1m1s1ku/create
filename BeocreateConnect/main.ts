@@ -176,6 +176,8 @@ function createWindow () {
     //win.loadFile('build/index.html')
     win.loadFile('index.html');
 
+	// win.webContents.openDevTools()
+
     win.webContents.on('did-finish-load', () => {
 		if (process.platform == 'darwin') {
 			win.webContents.send('colourSchemeIsDark', nativeTheme.shouldUseDarkColors);
@@ -189,11 +191,8 @@ function createWindow () {
 				startManualDiscovery();
 			}, 500);
 		}, 100);
-    })
-  
-    // Open the DevTools.
-    win.webContents.openDevTools()
-  
+    });
+    
     win.on('closed', () => {
 	  win = null;
 	  stopManualDiscovery();
