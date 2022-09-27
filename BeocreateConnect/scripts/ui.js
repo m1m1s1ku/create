@@ -102,7 +102,7 @@ if (ipc) {
 	
 	ipc.on('reloadProductView', (event) => {
 		const productView = document.getElementById('product-view');
-		productView.setAttribute('src', productView.src);
+		productView.setAttribute('src', productView.getAttribute('src'));
 	});
 }
 
@@ -239,7 +239,6 @@ function toggleMenu(force) {
 
 		menuTimeout = setTimeout(function() {
 			document.querySelector('#main-menu').classList.add('visible');
-			document.querySelector('#main-menu-back-shadow').classList.add('visible');
 			menuTimeout = setTimeout(function() {
 				document.body.classList.remove('animating-menu');
 			}, 1000);
@@ -251,7 +250,6 @@ function toggleMenu(force) {
 		showWindowTitle(false);
 		connectOnDiscovery = {identifier: null, productName: null};
 	} else {
-		//startLoadRowAnimation();
 		connectOnDiscovery = {identifier: null, productName: null};
 		if (currentAssistant) startAssistant();
 		if (shouldEnableRefreshButton) {
@@ -261,7 +259,6 @@ function toggleMenu(force) {
 		}
 		document.body.classList.replace('in-menu', 'animating-menu');
 		document.querySelector('#main-menu').classList.remove('visible');
-		document.querySelector('#main-menu-back-shadow').classList.remove('visible');
 		document.querySelector('#menu-button').classList.remove('menu-open');
 		
 		menuTimeout = setTimeout(function() {
@@ -325,38 +322,69 @@ function showSection(sectionID, closeMenu, screenID) {
 	}
 }
 
+const getSiblings = (el, sel) => {
+    const siblings = [];
+    let targets;
+    if (sel)
+        targets = el.parentNode.querySelectorAll(':scope > ' + sel)
+    else
+        targets = el.parentNode.children;
+
+    for (const target of targets) {
+        if (target !== el)
+            siblings.push(target);
+    }
+    return siblings;
+};
+
 function showScreen(screenID, direction) {
+	const screenNode = document.querySelector('#'+screenID);
+
 	if (!direction) {
-		$("#"+screenID).removeClass("left right");
-		$("#"+screenID).siblings(".menu-screen.visible").removeClass("left right");
+		screenNode.classList.remove('left', 'right');
+
+		for(const sibling of getSiblings(screenNode, '.menu-screen.visible')){
+			sibling.classList.remove('left', 'right');
+		}
 	} else if (direction == "left-right") {
-		$("#"+screenID).addClass("left").removeClass("right");
-		$("#"+screenID).siblings(".menu-screen.visible").addClass("right").removeClass("left");
+		screenNode.classList.replace('right', 'left');
+		for(const sibling of getSiblings(screenNode, '.menu-screen.visible')){
+			sibling.classList.replace('left', 'right');
+		}
 	} else if (direction == "right-left") {
-		$("#"+screenID).addClass("right").removeClass("left");
-		$("#"+screenID).siblings(".menu-screen.visible").addClass("left").removeClass("right");
+		screenNode.classList.replace('left', 'right');
+		for(const sibling of getSiblings(screenNode, '.menu-screen.visible')){
+			sibling.classList.replace('right', 'left');
+		}
 	}
-	$("#"+screenID).siblings(".menu-screen.visible").removeClass("visible");
+	for(const sibling of getSiblings(screenNode, '.menu-screen.visible')){
+		sibling.classList.remove('visible');
+	}
+
 	setTimeout(function() {
-		$("#"+screenID).siblings(".menu-screen").removeClass("show");
-		$("#"+screenID).addClass("show");
+		for(const sibling of getSiblings(screenNode, '.menu-screen')){
+			sibling.classList.remove('show');
+		}
+		screenNode.classList.add('show');
+
 		setTimeout(function() {
-			$("#"+screenID).addClass("visible");
+			screenNode.classList.add('visible');
 		}, 50);
 	}, 500);
 }
 
 function disclosure(disclosureID) {
-	if (!$("#"+disclosureID).hasClass("show")) {
-		$("#"+disclosureID).addClass("show");
+	const disclosure = document.querySelector('#'+disclosureID);
+	if(!disclosure.classList.contains('show')) {
+		disclosure.classList.add('show');
 	} else {
-		$("#"+disclosureID).removeClass("show");
+		disclosure.classList.remove('show');
 	}
 }
 
 function toggle(inElement, outElement) {
-	$(inElement).removeClass("hidden");
-	$(outElement).addClass("hidden");
+	inElement.classList.remove('hidden');
+	outElement.classList.add('hidden');
 }
 
 // PRODUCT DISCOVERY
@@ -367,7 +395,7 @@ let products = {};
 selectedProduct = null;
 
 let connectOnDiscovery = {identifier: null, systemName: null};
-
+let refreshing = false;
 
 if (ipc) {
 	setTimeout(function() {
@@ -379,51 +407,50 @@ if (ipc) {
 		updateProductLists();
 	});
 	
-	
 	ipc.on('addProduct', (event, product) => {
 		products[product.fullname] = product;
 		addProduct(product);
-		$(".no-products").addClass("hidden");
-		//updateProductLists();
+		document.querySelector('.no-products').classList.add('hidden');
 	});
 	
 	ipc.on('updateProduct', (event, product) => {
 		products[product.fullname] = product;
 		updateProduct(product);
-		//updateProductLists();
 	});
 	
-	refreshing = false;
 	ipc.on('removeProduct', (event, product) => {
-		//if (!refreshing) {
-			fullname = product.fullname;
-			$(".found-products .discovered[data-product-fullname=\""+fullname+"\"]").addClass("animated-hide");
+		fullname = product.fullname;
+		document.querySelector(".found-products .discovered[data-product-fullname=\""+fullname+"\"]").classList.add('animated-hide');
+		setTimeout(function() {
+			const productNode = document.querySelector(".found-products .discovered[data-product-fullname=\""+fullname+"\"]");
+			productNode.parentElement.removeChild(productNode);
+		}, 400);
+		delete products[fullname];
+		if (Object.keys(products).length == 0) {
+			const noProducts = document.querySelector('.no-products');
 			setTimeout(function() {
-				$(".found-products .discovered[data-product-fullname=\""+fullname+"\"]").remove();
-			}, 400);
-			delete products[fullname];
-			if (Object.keys(products).length == 0) {
+				noProducts.classList.replace('hidden', 'fade-hide');
+
 				setTimeout(function() {
-					$(".no-products").removeClass("hidden").addClass("fade-hide");
-					setTimeout(function() {
-						$(".no-products").removeClass("fade-hide");
-					}, 100);
-					$(".found-products .discovered[data-product-fullname=\""+fullname+"\"]").remove();
-				}, 400);
-			}
-			if (debug) console.log("Removing", fullname);
-		//}
-		//updateProductLists();
+					noProducts.classList.remove('fade-hide');
+				}, 100);
+				const productNode = document.querySelector(".found-products .discovered[data-product-fullname=\""+fullname+"\"]");
+				productNode.parentElement.removeChild(productNode);
+			}, 400);
+		}
+		if (debug) {
+			console.log("Removing", fullname);
+		}
 	});
 	
 	ipc.on('availableDrives', (event, drives) => {
 		console.log(drives);
-		$("#drive-list").empty();
+		document.querySelector('#drive-list').innerHTML = '';
 		for (d in drives) {
 			if (drives[d].busType == "USB") { // Only list USB drives.
 				size = Math.round(drives[d].size/100000000)/10;
 				if (size > 3) { // Make sure drive is large enough.
-					$("#drive-list").append('<div class="menu-item" onclick="selectDrive(\''+drives[d].raw+'\');"><div class="menu-label">'+drives[d].description+'</div><div class="menu-value">'+size+' GB</div></div>');
+					document.querySelector('#drive-list').innerHTML = '<div class="menu-item" onclick="selectDrive(\''+drives[d].raw+'\');"><div class="menu-label">'+drives[d].description+'</div><div class="menu-value">'+size+' GB</div></div>';
 				}
 			}
 		}
@@ -434,25 +461,34 @@ function refresh() {
 	if (menuOpen) {
 		ipc.send("refreshProducts");
 	} else {
-		$("#product-view").attr("src", $("#product-view").attr("src"));
+		const productView = document.querySelector('#product-view');
+		productView.setAttribute('src', productView.getAttribute('src'));
 	}
 }
 
 function updateProductLists() {
 	refreshing = true;
-	$(".found-products .discovered").remove();
+
+	const discovered = document.querySelector('.found-products .discovered');
+	if(discovered) {
+		discovered.parentElement.removeChild(discovered);
+	}
+
 	for (fullname in products) {
 		addProduct(products[fullname]);
 	}
-	/*for (var i = 0; i < 3; i++) {
-		$(".found-products").append('<div class="collection-item spacer"></div>');
-	}*/
+
 	if (Object.keys(products).length != 0) {
-		$(".no-products").addClass("hidden");
-		if (debug) console.log("Products:", Object.keys(products).length);
+		document.querySelector('.no-products').classList.add('hidden');
+		if (debug) {
+			console.log("Products:", Object.keys(products).length);
+		}
 	} else {
-		$(".no-products").removeClass("hidden");
-		if (debug) console.log("No products.");
+		document.querySelector('.no-products').classList.remove('hidden');
+
+		if (debug) {
+			console.log("No products.");
+		}
 	}
 	refreshing = false;
 }
@@ -467,14 +503,35 @@ function addProduct(product) {
 			productNotification();
 		}
 	}
-	if ($(".found-products .discovered[data-product-fullname=\""+product.fullname+"\"]")) {
-		$(".found-products .discovered[data-product-fullname=\""+product.fullname+"\"]").remove();
+	const foundProduct = document.querySelector(".found-products .discovered[data-product-fullname=\""+product.fullname+"\"]");
+	if(foundProduct) {
+		foundProduct.parentElement.removeChild(foundProduct);
 	}
-	$(".found-products .spacer.first").before('<div class="collection-item product-item discovered animated-hide '+info.classes.join(" ")+'" onclick="configureProduct(\''+product.fullname+'\');" data-product-fullname="'+product.fullname+'"><img class="square-helper" src="images/square-helper.png"><div class="collection-item-content"><img class="collection-icon" src="'+info.image+'"><div class="collection-item-text"><div class="collection-label upper product-type">'+info.model+'</div><div class="product-name collection-label lower">'+product.name+'</div></div></div>');
+
+	const firstSpacer = document.querySelector('.found-products .spacer.first');
+	const collectionItem = document.createElement('div');
+	collectionItem.classList.add('collection-item', 'product-item', 'discovered', 'animated-hide', ...info.classes);
+	collectionItem.addEventListener('click', (e) => {
+		configureProduct(product.fullname);
+	});
+	collectionItem.dataset.productFullname = product.fullname;
+	collectionItem.innerHTML = `<img class="square-helper" src="images/square-helper.png">
+	<div class="collection-item-content">
+		<img class="collection-icon" src="${info.image}">
+		<div class="collection-item-text">
+			<div class="collection-label upper product-type">${info.model}</div>
+			<div class="product-name collection-label lower">${product.name}</div>
+		</div>
+	</div>`;
+
+	firstSpacer.parentNode.insertBefore(collectionItem, firstSpacer);
+
 	setTimeout(function() {
-		$(".found-products .discovered").removeClass("animated-hide");
+		collectionItem.classList.remove('animated-hide');
 	}, 100);
-	if (debug) console.log("Adding", product.fullname);
+	if (debug) {
+		console.log("Adding", product.fullname);
+	}
 }
 
 function updateProduct(product) {
@@ -548,7 +605,6 @@ function setUpNew() {
 	showSection('set-up-new', true, 'set-up-new-start');
 }
 
-
 // Right-click menu for products
 if (remote) {
 	const productContextMenu = new Menu();
@@ -556,8 +612,6 @@ if (remote) {
 	productContextMenu.append(new MenuItem({ label: 'Open in Web Browser', click() { console.log('item 1 clicked') } }));
 	productContextMenu.append(new MenuItem({ type: 'separator' }));
 	productContextMenu.append(new MenuItem({ label: 'Hide Product...', click() { console.log('item 1 clicked') } }));
-	//menu.append(new MenuItem({ type: 'separator' }));
-	//menu.append(new MenuItem({ label: 'MenuItem2', type: 'checkbox', checked: true }));
 	
 	window.addEventListener('contextmenu', (e) => {
 	  e.preventDefault();
@@ -699,41 +753,36 @@ function selectDrive(raw) {
 // COMMUNICATIONS FROM THE PRODUCT UI
 window.addEventListener("message", function(event) {
 	data = JSON.parse(event.data);
-	
-	if (data.header != undefined) {
-	
-		switch (data.header) {
-			case "isShownInBeoApp":
-				// The product asks if its UI is shown in the BeoCreate app.
-				sendToProductUI({header: "isShownInBeoApp", content: true});
-				sendToProductUI({header: "hasDarkAppearance", content: darkAppearance});
-				break;
-			case "systemName":
-				// The product sends its name, update it to the header.
-				if (inProductView) setWindowTitle(data.content.name);
-				break;
-			case "autoReconnect":
-				connectOnDiscovery = {identifier: data.content.systemID, systemName: data.content.systemName};
-				productNotification(data.content.systemName+" will be automatically reconnected", "Make sure this computer is connected to the same network as the product.");
-				break;
-			case "connection":
-				// Websocket connection status.
-				if (data.content.status) productConnectionStatus = data.content.status;
-				break;
-			case "powerStatus":
-				if (data.content.status == "rebooting") {
-					if (debug) console.log("Product is starting a reboot.");
-					connectOnDiscovery = {identifierType: "systemID", identifier: data.content.systemID, systemName: data.content.systemName};
-					//productNotification(data.content.systemName+" is restarting", "Please wait for automatic reconnection...");
-				} else if (data.content.status == "shuttingDown") {
-					if (debug) console.log("Product is starting a shutdown.");
-					//productNotification(data.content.systemName+" is shutting down", "Please wait for at least 20 seconds before disconnecting power.");
-				}
-				//toggleMenu(true);
-				//showMenuButton(false);
-				break;
-		}
-	
+
+	if(!data.header) {
+		return;
+	}
+
+	switch (data.header) {
+		case "isShownInBeoApp":
+			sendToProductUI({header: "isShownInBeoApp", content: true});
+			sendToProductUI({header: "hasDarkAppearance", content: darkAppearance});
+			break;
+		case "systemName":
+			if (inProductView) {
+				setWindowTitle(data.content.name);
+			}
+			break;
+		case "autoReconnect":
+			connectOnDiscovery = {identifier: data.content.systemID, systemName: data.content.systemName};
+			productNotification(data.content.systemName+" will be automatically reconnected", "Make sure this computer is connected to the same network as the product.");
+			break;
+		case "connection":
+			if (data.content.status) productConnectionStatus = data.content.status;
+			break;
+		case "powerStatus":
+			if (data.content.status == "rebooting") {
+				if (debug) console.log("Product is starting a reboot.");
+				connectOnDiscovery = {identifierType: "systemID", identifier: data.content.systemID, systemName: data.content.systemName};
+			} else if (data.content.status == "shuttingDown") {
+				if (debug) console.log("Product is starting a shutdown.");
+			}
+			break;
 	}
 });
 
