@@ -197,7 +197,10 @@ function createWindow () {
 	  stopManualDiscovery();
 	  clearInterval(ipCheckInterval);
 	  stopDiscovery();
-    })
+	  if(sshInstance) {
+		sshInstance.dispose();
+	  }
+    });
     
     win.on('focus', () => {
     	win.webContents.send('windowEvent', "activate");
@@ -392,20 +395,45 @@ ipcMain.on("refreshProducts", (event, arg) => {
 	startManualDiscovery();
 });
 
-ipcMain.on("bindRCAToAMP", (event, arg) => {
+let clientChannel = null;
+let sshInstance = null;
+let bindRunning = false;
+function connectSSH() {
 	console.warn('internal bind');
-	const ssh = new NodeSSH()
+	if(sshInstance) {
+		console.warn('dispose current ssh handle');
+		sshInstance.dispose();
+		clientChannel.close();
+		clientChannel = null;
+		sshInstance = null;
+		return;
+	}
 
-	ssh.connect({
+	sshInstance = new NodeSSH()
+
+	sshInstance.connect({
 		host: 'rcaberry.local',
 		username: 'root',
 		password: 'hifiberry'
 	}).then(() => {
-		ssh.execCommand('arecord -D plughw:0,0 -f S24_LE -t wav -r 60000 -c2 | ssh -C root@192.168.1.18 -i rcaberry aplay -f S24_LE -t wav -r 60000 -c2').then(function(result) {
+		console.warn('rcaberry bound to hifiberry')
+		bindRunning = true;
+		sshInstance.execCommand('arecord -D plughw:0,0 -f S24_LE -t wav -r 60000 -c2 | ssh -C root@192.168.1.18 -i rcaberry aplay -f S24_LE -t wav -r 60000 -c2', { pty: true, onChannel: (client) => {
+			clientChannel = client;
+		} }).then(function(result) {
 			console.log('STDOUT: ' + result.stdout)
+			if(result.stderr) {
+				sshInstance?.execCommand('killall arecord');
+			}
 			console.log('STDERR: ' + result.stderr)
 		});
-	})
+	});
+
+	return sshInstance;
+}
+
+ipcMain.on("bindRCAToAMP", (event, arg) => {
+	connectSSH();
 });
 
 let manuallyDiscoveredProduct = null;
