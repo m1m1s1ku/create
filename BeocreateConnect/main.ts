@@ -452,13 +452,13 @@ function connectSSH() {
 
 	const audioParams = `${bitrate} ${codec} ${samplingRate} ${channels}`;
 
-	sshInstance.connect({
+	return sshInstance.connect({
 		host: products[source].addresses[0],
 		username: 'root',
 		password: 'hifiberry'
 	}).then(() => {
 		// @todo : Add settings to create this command dynamically.
-		sshInstance.execCommand(`arecord -D plughw:0,0 ${audioParams} | ssh -C root@${products[destination].addresses[0]} -i rcaberry aplay ${audioParams}`, {
+		return sshInstance.execCommand(`arecord -D plughw:0,0 ${audioParams} | ssh -C root@${products[destination].addresses[0]} -i rcaberry aplay ${audioParams}`, {
 			// @note : hack, without this, channel.close don't work.
 			pty: true,
 			onChannel: (client) => {
@@ -485,8 +485,6 @@ function connectSSH() {
 			console.log('STDERR: ' + result.stderr)
 		});
 	});
-
-	return sshInstance;
 }
 
 ipcMain.on("bindRCAToAMP", (event, arg) => {
