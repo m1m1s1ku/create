@@ -189,7 +189,7 @@ function createWindow () {
     })
   
     // Open the DevTools.
-    // win.webContents.openDevTools()
+    win.webContents.openDevTools()
   
     win.on('closed', () => {
 	  win = null;
@@ -383,17 +383,8 @@ function setProductInfo(service: { fullname: any; addresses: any; txt: any; host
 		manual: false,
 	};
 
-	if(currentBinding && currentBinding[service.name]) {
-		product.boundTo = currentBinding[service.name];
-		const inverseKey = Object.keys(products).find(key => {
-			const object = products[key];
-			if(object.name === currentBinding[service.name]) {
-				return key;
-			}
-		});
-		if(inverseKey) {
-			products[inverseKey].boundTo = product.name;
-		}
+	if(currentRouting && currentRouting[service.name]) {
+		product.boundTo = currentRouting[service.name];
 	}
 
 	if (service.manual) {
@@ -414,7 +405,7 @@ ipcMain.on("refreshProducts", (event, arg) => {
 
 let clientChannel = null;
 let sshInstance = null;
-let currentBinding = null;
+let currentRouting = null;
 function connectSSH() {
 	console.warn('internal bind');
 	if(sshInstance) {
@@ -428,8 +419,9 @@ function connectSSH() {
 
 	sshInstance = new NodeSSH()
 
-	currentBinding = {
-		AUXBerry: 'HiFiBerry'
+	currentRouting = {
+		AUXBerry: 'HiFiBerry',
+		HiFiBerry: 'AUXBerry',
 	};
 
 	refreshProducts();
@@ -450,6 +442,7 @@ function connectSSH() {
 					clientChannel?.close();
 					clientChannel = null;
 					sshInstance = null;
+					currentRouting = null;
 				});
 			}
 			console.log('STDOUT: ' + result.stdout)

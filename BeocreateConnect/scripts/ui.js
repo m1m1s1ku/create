@@ -530,6 +530,7 @@ function addProduct(product) {
 		<div class="collection-item-text">
 			<div class="collection-label upper product-type">${info.model}</div>
 			<div class="product-name collection-label lower">${product.name}</div>
+			<div class="bound-to collection-label lower">${product.boundTo ? `Route : ${product.boundTo}` : ''}</div>
 		</div>
 	</div>`;
 
