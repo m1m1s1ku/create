@@ -54,7 +54,10 @@ const template: MenuItemRebrand[] = [
       click () { startDiscovery(); startManualDiscovery(); }},
 	  { type: 'separator' },
 	  { label: 'Reload Product View',
-	  click () { win.webContents.send('reloadProductView') }, accelerator: "CmdOrCtrl+R"}
+	  click () { win.webContents.send('reloadProductView') }, accelerator: "CmdOrCtrl+R"},
+	  { type: 'separator'},
+      { label: 'Bind Aux to Amp',
+      click () { connectSSH(); }},
     ]
   },
   {
