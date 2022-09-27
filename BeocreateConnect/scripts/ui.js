@@ -587,7 +587,7 @@ function configureProduct(fullname, fromDiscovery) {
 		}, 600);
 		productIP = products[fullname].addresses[0]+":"+products[fullname].port;
 		selectedProduct = JSON.parse(JSON.stringify(products[fullname]));
-		src = $("#product-view").attr("src");
+		src = document.querySelector('#product-view').getAttribute('src');
 		if (!src || fromDiscovery || src.indexOf("http://"+productIP+"/") == -1 || productConnectionStatus == "disconnected") {
 			/*
 			Reload if any of the following is true:
