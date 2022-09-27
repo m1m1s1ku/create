@@ -1,5 +1,5 @@
 {
- "name": "BeocreateConnect",
+ "name": "beocreate-connect",
  "productName": "Beocreate Connect",
  "version": "0.3.0",
  "description": "Desktop utility for Beocreate-based sound systems",
@@ -34,7 +34,7 @@
  "build": {
   "appId": "dk.bang-olufsen.beocreateconnect",
   "productName": "Beocreate Connect",
-  "copyright": "Copyright 2018-2020 Bang & Olufsen A/S. Licensed under MIT.",
+  "copyright": "Copyright 2018-2022 Bang & Olufsen A/S. Licensed under MIT.",
   "nodeVersion": "current",
   "directories": {
    "buildResources": "build"
