@@ -391,7 +391,7 @@ if (customisations) expressServer.use("/custom", express.static(systemConfigurat
 expressServer.use("/misc", express.static(systemDirectory+"/../misc", {etag: etags})); // For other files.
 expressServer.get("/", async function (req, res) {
 	if (debugMode) console.log("Loading user interface for default appearance...");
-	ui = await loadAppearance(systemConfiguration.defaultAppearance);
+	const ui = await loadAppearance(systemConfiguration.defaultAppearance);
 	if (ui) {
 		res.status(200);
 		res.send(ui);
@@ -716,9 +716,9 @@ async function shouldLoadExtension(mode, extensionName, userExtension, menuName 
 	
 	if (!shouldIncludeExtension) return false;
 	
-	
+	let fullPath;
 	if (mode == 0) {
-		let fullPath = paths[0];
+		fullPath = paths[0];
 		try {
 			require.resolve(fullPath);
 		}
@@ -738,9 +738,9 @@ async function shouldLoadExtension(mode, extensionName, userExtension, menuName 
 		}
 	} 
 	if (mode == 1) {
-		extensionExists = false;
+		let extensionExists = false;
 		var menuPath = null;
-		for (p in paths) {
+		for (let p in paths) {
 			if (!extensionExists) {
 				fullPath = paths[p];
 				if (fs.existsSync(fullPath) && 
@@ -753,7 +753,7 @@ async function shouldLoadExtension(mode, extensionName, userExtension, menuName 
 						}
 					} else {
 						// Wildcard matching.
-						files = fs.readdirSync(fullPath).filter(fn => fn.endsWith(menuName.substring(1)+".html"));
+						const files = fs.readdirSync(fullPath).filter(fn => fn.endsWith(menuName.substring(1)+".html"));
 						if (files.length == 1) {
 							menuName = files[0];
 							extensionExists = true;
@@ -782,7 +782,7 @@ async function shouldLoadExtension(mode, extensionName, userExtension, menuName 
 
 
 async function loadAppearance(appearance) {
-
+	let appearancePath;
 	if (fs.existsSync(dataDirectory+"/beo-views/"+appearance)) {
 		appearancePath = dataDirectory+"/beo-views/"+appearance;
 	} else if (fs.existsSync(systemDirectory+"/../beo-views/"+appearance)) {
@@ -792,7 +792,8 @@ async function loadAppearance(appearance) {
 	}
 	
 	var extensionsListClient = {};
-	masterList = [];
+	let masterList = [];
+	let extensionsNames;
 	// Check if some extensions are excluded or exlusively included.
 	if (fs.existsSync(extensionsPath)) {
 		extensionsNames = fs.readdirSync(extensionsPath);
@@ -819,11 +820,13 @@ async function loadAppearance(appearance) {
 	var scripts = [];
 	var stylesheets = [];
 	var strings = {};
-	
+	let navigationSets = [];
+
 	if (Object.keys(masterList).length > 0) {
 		
-		navigationSets = [];
-		menuName = "menu";
+
+		let menuName = "menu";
+		let manifest;
 		try {
 			manifest = JSON.parse(fs.readFileSync(appearancePath+'/manifest.json', "utf8"));
 			if (manifest.navigationSets) navigationSets = manifest.navigationSets;
@@ -834,7 +837,7 @@ async function loadAppearance(appearance) {
 		}
 		
 		// Load the markup for all extensions.
-		for (extensionName in masterList) {
+		for (let extensionName in masterList) {
 			let shouldLoad = await shouldLoadExtension(1, extensionName, masterList[extensionName].userExtension, menuName);
 			if (shouldLoad) {
 				extensionsListClient[extensionName] = {assetPath: "/extensions/"+extensionName};
@@ -842,26 +845,26 @@ async function loadAppearance(appearance) {
 				menus.push(fs.readFileSync(shouldLoad.path, "utf8").replace(/^<script.*€.*/gm, "").replace(/€\//g, "/extensions/"+extensionName+"/")); // Read the menu from file, remove legacy client scripts and replace asset path placeholder.
 				// Read scripts and stylesheets.
 				if (manifest.extensionScriptFileName || manifest.extensionStylesheetFileName) {
-					files = fs.readdirSync(shouldLoad.directory);
+					const files = fs.readdirSync(shouldLoad.directory);
 					
 					// € matches extension name, * is a wildcard.
 					if (manifest.extensionScriptFileName.match(/€|\*/g)) {
-						pattern = manifest.extensionScriptFileName.replace(/€/g, extensionName).replace(/\*/g, ".*")+"\\.js";
-						regex = new RegExp(pattern);
-						filtered = files.filter(fn => (fn.match(regex) ? true : false));
+						const pattern = manifest.extensionScriptFileName.replace(/€/g, extensionName).replace(/\*/g, ".*")+"\\.js";
+						const regex = new RegExp(pattern);
+						const filtered = files.filter(fn => (fn.match(regex) ? true : false));
 						if (filtered.length == 1) scripts.push("/extensions/"+extensionName+"/"+filtered[0]);
 					} else {
-						i = files.indexOf(manifest.extensionScriptFileName+".js");
+						let i = files.indexOf(manifest.extensionScriptFileName+".js");
 						if (i != -1) scripts.push("/extensions/"+extensionName+"/"+files.i);
 					}
 					
 					if (manifest.extensionStylesheetFileName.match(/€|\*/g)) {
-						pattern = manifest.extensionStylesheetFileName.replace(/€/g, extensionName).replace(/\*/g, ".*")+"\\.css";
-						regex = new RegExp(pattern);
-						filtered = files.filter(fn => (fn.match(regex) ? true : false));
+						const pattern = manifest.extensionStylesheetFileName.replace(/€/g, extensionName).replace(/\*/g, ".*")+"\\.css";
+						const regex = new RegExp(pattern);
+						const filtered = files.filter(fn => (fn.match(regex) ? true : false));
 						if (filtered.length == 1) stylesheets.push("/extensions/"+extensionName+"/"+filtered[0]);
 					} else {
-						i = files.indexOf(manifest.extensionStylesheetFileName+".css");
+						let i = files.indexOf(manifest.extensionStylesheetFileName+".css");
 						if (i != -1) stylesheets.push("/extensions/"+extensionName+"/"+files.i);
 					}
 				}
@@ -893,13 +896,13 @@ async function loadAppearance(appearance) {
 			if (customisations.navigationSets) navigationSets = customisations.navigationSets;
 		}
 		
-		stylesheetMarkup = "";
-		for (s in stylesheets) {
+		let stylesheetMarkup = "";
+		for (let s in stylesheets) {
 			stylesheetMarkup += '\t<link rel="stylesheet" href="'+stylesheets[s]+'">\n';
 		}
 		
-		scriptMarkup = "";
-		for (s in scripts) {
+		let scriptMarkup = "";
+		for (let s in scripts) {
 			scriptMarkup += '<script type="text/javascript" charset="utf-8" src="'+scripts[s]+'"></script>\n';
 		}
 		
@@ -915,8 +918,8 @@ async function loadAppearance(appearance) {
 			var systemType = "hifiberry";
 			var pageTitle = "HiFiBerry";
 		}
-		bodyClassString = '<body class="'+systemType+' ';
-		completeUI = fs.readFileSync(appearancePath+'/index.html', "utf8").replace("<html>", '<html lang="'+systemConfiguration.language+'">').replace("<title></", '<title>'+pageTitle+"</").replace('<body class="', bodyClassString).replace("</beo-dynamic-ui>", "").replace("<beo-dynamic-ui>", menus.join("\n\n")).replace("</beo-styles>", "").replace("<beo-styles>", stylesheetMarkup).replace("<beo-scripts>", "<script>systemType = '"+systemType+"';extensions = "+JSON.stringify(extensionsListClient)+";\n navigationSets = "+JSON.stringify(navigationSets)+";\ndebug = "+debugMode+";\ndeveloperMode = "+(developerMode)+";\ncustomisations = "+JSON.stringify(customisations)+";\ntranslations = "+JSON.stringify(strings)+"</script>\n").replace("</beo-scripts>", scriptMarkup);
+		const bodyClassString = '<body class="'+systemType+' ';
+		const completeUI = fs.readFileSync(appearancePath+'/index.html', "utf8").replace("<html>", '<html lang="'+systemConfiguration.language+'">').replace("<title></", '<title>'+pageTitle+"</").replace('<body class="', bodyClassString).replace("</beo-dynamic-ui>", "").replace("<beo-dynamic-ui>", menus.join("\n\n")).replace("</beo-styles>", "").replace("<beo-styles>", stylesheetMarkup).replace("<beo-scripts>", "<script>systemType = '"+systemType+"';extensions = "+JSON.stringify(extensionsListClient)+";\n navigationSets = "+JSON.stringify(navigationSets)+";\ndebug = "+debugMode+";\ndeveloperMode = "+(developerMode)+";\ncustomisations = "+JSON.stringify(customisations)+";\ntranslations = "+JSON.stringify(strings)+"</script>\n").replace("</beo-scripts>", scriptMarkup);
 		
 		return completeUI;
 	} else {

@@ -47,7 +47,7 @@ function BeoCom() {
 
 inherits(BeoCom, eventEmitter);
 
-BeoCom.prototype.startSocket = (options, callback) => {
+BeoCom.prototype.startSocket = function(options, callback) {
 	let self = this;
 	
 	if (!options) options = {};
@@ -89,6 +89,7 @@ BeoCom.prototype.startSocket = (options, callback) => {
 	}
 	
 	socket.on('request', function(request) {
+		let protocol;
 		if (request.requestedProtocols) {
 			if (acceptedProtocols.indexOf(request.requestedProtocols[0]) != -1) {
 				protocol = request.requestedProtocols[0];
@@ -101,7 +102,7 @@ BeoCom.prototype.startSocket = (options, callback) => {
 		
 		if (protocol != null && acceptConnections) {
 			var connection = request.accept(protocol, request.origin);
-			newConnection = addClient(connection, protocol);
+			let newConnection = addClient(connection, protocol);
 			
 			self.emit('open', newConnection.ID, newConnection.protocol);
 	
@@ -110,13 +111,13 @@ BeoCom.prototype.startSocket = (options, callback) => {
 				// data should always be in serialised JSON format.
 				if (message.type == "utf8") {
 					try {
-						jsonObject = JSON.parse(message.utf8Data);
+						let jsonObject = JSON.parse(message.utf8Data);
 						self.emit('data', jsonObject, findID(connection));
 					} catch (error) {
 						// Try cleaning up garbage from the message and run it through parser again.
 						try {
 							var utf8Data = message.utf8Data.slice(0, message.utf8Data.lastIndexOf("}")+1);
-							jsonObject = JSON.parse(utf8Data);
+							let jsonObject = JSON.parse(utf8Data);
 							self.emit('data', jsonObject, findID(connection));
 						} catch (error2) {
 							console.error("Error in processing received data:", error2, message);
@@ -124,7 +125,7 @@ BeoCom.prototype.startSocket = (options, callback) => {
 					}
 				} else if (message.type == "binary") {
 					try {
-						jsonObject = JSON.parse(decoder.decode(message.binaryData));
+						let jsonObject = JSON.parse(decoder.decode(message.binaryData));
 						self.emit('data', jsonObject, findID(connection));
 					} catch (error) {
 						console.error("Error in processing received data:", error, message);
@@ -209,7 +210,7 @@ BeoCom.prototype.isBonjourStarted = function() {
 
 function addClient(connection, protocol) {
 	connectionID++;
-	newConnection = {ID: connectionID, protocol: protocol}
+	let newConnection = {ID: connectionID, protocol: protocol}
 	connections.push(newConnection);
 	connectionLinks.push(connection);
 	return newConnection;
@@ -229,6 +230,7 @@ function removeClient(connection) {
 }
 
 function findID(connection) {
+	let theID;
 	for (var i = 0; i < connections.length; i++) {
 		if (connectionLinks[i] == connection) {
 			theID = connections[i].ID;
