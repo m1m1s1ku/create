@@ -410,16 +410,15 @@ function connectSSH() {
 	sshInstance = new NodeSSH()
 
 	sshInstance.connect({
-		host: 'rcaberry.local',
+		host: 'auxberry.local',
 		username: 'root',
 		password: 'hifiberry'
 	}).then(() => {
-		console.warn('rcaberry bound to hifiberry')
 		// @todo : Add settings to create this command dynamically.
 		sshInstance.execCommand('arecord -D plughw:0,0 -f S24_LE -t wav -r 60000 -c2 | ssh -C root@192.168.1.18 -i rcaberry aplay -f S24_LE -t wav -r 60000 -c2', { pty: true, onChannel: (client) => {
 			clientChannel = client;
 		} }).then(function(result) {
-			console.log('STDOUT: ' + result.stdout)
+			// @note : enforce killall on error (enable switch aspect of the button)
 			if(result.stderr) {
 				sshInstance?.execCommand('killall arecord').then(() => {
 					sshInstance?.dispose();
@@ -428,6 +427,7 @@ function connectSSH() {
 					sshInstance = null;
 				});
 			}
+			console.log('STDOUT: ' + result.stdout)
 			console.log('STDERR: ' + result.stderr)
 		});
 	});

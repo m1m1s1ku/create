@@ -6,7 +6,7 @@
  "main": "build/index.js",
  "scripts": {
   "compile": "tsc && cp index.html build/ && cp -R scripts build && cp -R images build && cp style.css build/ && cp -R fonts build",
-  "start": "npm run compile && electron ./build",
+  "start": "pnpm run compile && electron ./build",
   "dist": "electron-builder",
   "pack": "electron-builder --dir",
   "postinstall": "electron-builder install-app-deps"
