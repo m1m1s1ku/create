@@ -26,6 +26,7 @@ let os = null;
 let debug = true;
 let developerMode = false;
 let extensions = {};
+let darkAppearance = false;
 
 let beo = (function() {
 	let uiSettings = {
@@ -34,12 +35,14 @@ let beo = (function() {
 
 	let os = getOS();
 	let inBeoApp = false;
-
-	$( document ).ready(function() {	
+	document.addEventListener("DOMContentLoaded", function() {
 		if (("standalone" in window.navigator) && window.navigator.standalone){
-			$("body").addClass("standalone");
+			document.body.classList.add('standalone');
 		}
-		if (developerMode) $("body").addClass("developer");
+		if (developerMode) {
+			document.body.classList.add('developer');
+		}
+
 		getWindowDimensions();
 		sendToProductView({header: "isShownInBeoApp"});
 		prepareMenus();
@@ -49,13 +52,16 @@ let beo = (function() {
 		
 		beoCom.connectToCurrentProduct();
 		
-		$("body").css("opacity", "1");
+		document.body.style.opacity = "1";
 		
-		if (systemType == "hifiberry") $('head link[rel="apple-touch-icon"]').attr("href", "views/default/apple-touch-icon-hifiberry.png");
-		
-		$("input[type=file]#file-input").on('change',function(){
+		if (systemType == "hifiberry") {
+			const touchIcon = document.querySelector('head link[rel="apple-touch-icon"]');
+			touchIcon.setAttribute('href', 'views/default/apple-touch-icon-hifiberry.png')
+		}
+
+		document.querySelector("input[type=file]#file-input").addEventListener('change', function() {
 			uploadFile(null, null, this.files[0]);
-		});
+		})
 		
 		if (customisations && customisations.waitAnimation) {
 			attentionIcon.src = customisations.waitAnimation;
@@ -65,10 +71,10 @@ let beo = (function() {
 			attentionIcon.src = "common/hifiberry-wait-animate.svg";
 		}
 
-		$(".device").text(os[1]); // Change strings and instructions in the UI to refer to the correct platform.
+		document.querySelector('.device').innerText = os[1];
 		
 		setTimeout(function() {
-			$("nav.bar .image-cacher").addClass("hidden");
+			document.querySelector('nav.bar .image-cacher').classList.add('hidden');
 		}, 2000);
 	});
 
@@ -76,23 +82,22 @@ let beo = (function() {
 
 	// RECEIVE MESSAGES FROM BEOCREATE APP
 	window.addEventListener('message',function(event) {
-		data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
-		if (data.header != undefined) {
-			switch (data.header) {
-				case "isShownInBeoApp":
-					if (data.content == true) {
-						$("body").addClass("in-beo-app");
-						inBeoApp = true;
-					}
-					break;
-				case "hasDarkAppearance":
-					if (data.content == true) {
-						setAppearance(true);
-					} else {
-						setAppearance(false);
-					}
-					break;
-			}
+		let data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+		if(!data.header) { return; }
+		switch (data.header) {
+			case "isShownInBeoApp":
+				if (data.content == true) {
+					document.body.classList.add('in-beo-app');
+					inBeoApp = true;
+				}
+				break;
+			case "hasDarkAppearance":
+				if (data.content == true) {
+					setAppearance(true);
+				} else {
+					setAppearance(false);
+				}
+				break;
 		}
 	});
 
@@ -100,8 +105,7 @@ let beo = (function() {
 		window.parent.postMessage(JSON.stringify(data), '*');
 	}
 
-	$(document).on("general", function(event, data) {
-		
+	document.addEventListener('general', (e, data) => {
 		if (data.header == "powerStatus" && !data.content.overrideUIActions) {
 			if (product_information && product_information.systemID && product_information.systemName) {
 				if (data.content.status == "shuttingDown") {
@@ -119,17 +123,13 @@ let beo = (function() {
 				}
 			}
 		}
-		
 	});
-
 
 	// USER INTERFACE SETUP
 
-	var language = "en";
-
-	var resizeTimeout;
-	var windowHeight = 0;
-	var windowWidth = 0;
+	let resizeTimeout;
+	let windowHeight = 0;
+	let windowWidth = 0;
 
 	function getWindowDimensions() {
 		windowHeight = window.innerHeight;
@@ -140,16 +140,17 @@ let beo = (function() {
 		clearTimeout(resizeTimeout);
 		resizeTimeout = setTimeout(function() {
 			getWindowDimensions();
-			//updateInterfaceMode();
 			updateSliderWidths();
-			updatePopupHeight();
-			$(document).trigger("ui", {header: "windowResized"});
+
+			document.dispatchEvent(new CustomEvent('ui', {
+				header: 'windowResized',
+			}));
 		}, 200);
 	}, true);
 
 	document.onkeydown = function(evt) {
 		evt = evt || window.event;
-		var isEscape = false;
+		let isEscape = false;
 		if ("key" in evt) {
 			isEscape = (evt.key === "Escape" || evt.key === "Esc");
 		} else {
@@ -166,8 +167,8 @@ let beo = (function() {
 		}
 	};
 
-	var mainMenuExtension = null;
-	var navigation = [];
+	let mainMenuExtension = null;
+	let navigation = [];
 
 	function prepareMenus() {
 		console.log("Preparing menus...");
@@ -176,10 +177,9 @@ let beo = (function() {
 			// Take first set as the main navigation.
 			navigation = [].concat(navigationSets[0].items);
 		}
-		
 
 		// List items specified in the manifest for navigation.
-		var navExtensions = [];
+		let navExtensions = [];
 		for (n in navigation) {
 			if (navigation[n].kind == "extension") {
 				navExtensions.push(navigation[n].name);
@@ -187,10 +187,10 @@ let beo = (function() {
 		}
 		
 		// Sort extensions and filter out the ones that are in the navigation.
-		var sortedExtensions = [];
-		for (e in extensions) {
+		let sortedExtensions = [];
+		for (let e in extensions) {
 			if (navExtensions.indexOf(e) == -1) {
-				theExtension = document.querySelector(".menu-screen#"+e);
+				const theExtension = document.querySelector(".menu-screen#"+e);
 				if (theExtension) {
 					if (theExtension.attributes["data-sort-as"]) {
 						sortedExtensions.push({name: e, sortName: theExtension.attributes["data-sort-as"].value});
@@ -207,12 +207,12 @@ let beo = (function() {
 		});
 		
 		// Add submenus based on the sort order.
-		var unplacedExtensions = [];
-		for (e in sortedExtensions) {
-			var extensionName = sortedExtensions[e].name;
-			var extensionPlaced = false;
-			theExtension = document.querySelector(".menu-screen#"+extensionName);
-			var context = null;
+		let unplacedExtensions = [];
+		for (let e in sortedExtensions) {
+			let extensionName = sortedExtensions[e].name;
+			let extensionPlaced = false;
+			const theExtension = document.querySelector(".menu-screen#"+extensionName);
+			let context = null;
 			if (theExtension.attributes["data-context"]) {
 				context = theExtension.attributes["data-context"].value.split("/");
 			} else if (theExtension.classList.contains("source")) {
@@ -220,16 +220,15 @@ let beo = (function() {
 			}
 			
 			if (context) {
-				
 				// Localise this screen or title.
 				localiseExtension(theExtension, extensionName);
 				
-				iconName = (theExtension.attributes["data-icon"]) ? theExtension.attributes["data-icon"].value : null;
+				let iconName = (theExtension.attributes["data-icon"]) ? theExtension.attributes["data-icon"].value : null;
 				if (systemType == "hifiberry" && theExtension.attributes["data-icon-hifiberry"]) {
 					iconName = theExtension.attributes["data-icon-hifiberry"].value;
 				}
 				
-				menuOptions = {
+				let menuOptions = {
 					label: theExtension.attributes["data-menu-title"].value,
 					onclick: 'beo.showExtension(\''+extensionName+'\');',
 					icon: extensions[extensionName].assetPath+"/symbols-black/"+iconName, // Still not quite sure if it looks better with or without icons.
@@ -257,7 +256,7 @@ let beo = (function() {
 				if (theExtension.attributes["data-menu-class"]) {
 					menuOptions.classes.push(theExtension.attributes["data-menu-class"].value);
 				}
-				var hideExtension = false;
+				let hideExtension = false;
 				if (theExtension.attributes["data-hidden"]) hideExtension = true;
 				if (customisations && 
 					customisations.hiddenExtensions &&
@@ -292,8 +291,8 @@ let beo = (function() {
 				
 				$(".menu-screen#"+extensionName+" .scroll-area").first().prepend('<h1 class="large-title">'+$(".menu-screen#"+extensionName+" header h1").first().text()+'</h1>'); // Duplicate title for views that use a large title.
 				
-				deepMenus = document.querySelectorAll('.menu-screen[data-parent-extension="'+extensionName+'"]');
-				for (d of deepMenus) {
+				let deepMenus = document.querySelectorAll('.menu-screen[data-parent-extension="'+extensionName+'"]');
+				for (let d of deepMenus) {
 					extensions[extensionName].deepMenu.push(d.id);
 				}
 			} 
@@ -305,7 +304,7 @@ let beo = (function() {
 		// Add top-level menus, first from the navigation manifest and then all "left-overs".
 		navigation = navigation.concat(unplacedExtensions);
 		
-		var navDestination = 0;
+		let navDestination = 0;
 		if (document.querySelector(".beo-dynamic-menu.main-menu")) {
 			navDestination = 1;
 			mainMenuExtension = document.querySelector(".beo-dynamic-menu.main-menu").closest(".menu-screen").attributes.id.value;
@@ -315,22 +314,23 @@ let beo = (function() {
 		}
 		// 0 = Menus go to the top navigation bar as before, 1 = menus go to the "main menu" space inside an extension. Top navigation bar is then populated with shortcuts.
 		
-		for (n in navigation) {
+		for (let n in navigation) {
+			let isMainMenu
 			if (navigation[n].kind == "extension") {
 				if (customisations && 
 					customisations.hiddenExtensions &&
 					customisations.hiddenExtensions.indexOf(navigation[n].name) != -1) {
 					continue; // Skip adding this extension if it's hidden.
 				}
-				theExtension = document.querySelector(".menu-screen#"+navigation[n].name);
+				let theExtension = document.querySelector(".menu-screen#"+navigation[n].name);
 				if (theExtension) {
-					var isMainMenu = (navigation[n].name == mainMenuExtension) ? true : false; // Checks if this is the main menu. It will always appear in top bar.
+					isMainMenu = (navigation[n].name == mainMenuExtension) ? true : false; // Checks if this is the main menu. It will always appear in top bar.
 					
 					iconName = (theExtension.attributes["data-icon"]) ? theExtension.attributes["data-icon"].value : null;
 					if (systemType == "hifiberry" && theExtension.attributes["data-icon-hifiberry"]) {
 						iconName = theExtension.attributes["data-icon-hifiberry"].value;
 					}
-					var menuOptions = {
+					let menuOptions = {
 						onclick: 'beo.showExtension(\''+navigation[n].name+'\');',
 						icon: extensions[navigation[n].name].assetPath+"/symbols-black/"+iconName,
 						id: navigation[n].name+'-menu-item',
@@ -349,7 +349,7 @@ let beo = (function() {
 					}
 					menuOptions.label = theExtension.attributes["data-menu-title"].value;
 					
-					hideExtension = false;
+					let hideExtension = false;
 					if (theExtension.attributes["data-hidden"]) hideExtension = true;
 					if (customisations && 
 						customisations.hiddenExtensions &&
@@ -399,15 +399,14 @@ let beo = (function() {
 		console.log("Menus ready.");
 	}
 
-	var navigationMode = null;
-	var favourites = [];
+	let favourites = [];
 	function prepareFavourites(navSetID = null) {
-		var selectableNavSets = 0;
+		let selectableNavSets = 0;
 		if (!navSetID) {
 			if (localStorage.beocreateSelectedNavigationSet) {
 				navSetID = localStorage.beocreateSelectedNavigationSet;
-				var setFound = false;
-				for (var i = 0; i < navigationSets.length; i++) {
+				let setFound = false;
+				for (let i = 0; i < navigationSets.length; i++) {
 					if (navigationSets[i].id == navSetID) {
 						setFound = true;
 						break;
@@ -415,7 +414,7 @@ let beo = (function() {
 				}
 				if (!setFound) navSetID = "full";
 			} else {
-				for (var i = 0; i < navigationSets.length; i++) {
+				for (let i = 0; i < navigationSets.length; i++) {
 					if (!navigationSets[i].hideFromShortcuts) {
 						navSetID = navigationSets[i].id;
 						break;
@@ -424,8 +423,8 @@ let beo = (function() {
 			}
 		}
 		
-		var setName = "";
-		for (s in navigationSets) {
+		let setName = "";
+		for (let s in navigationSets) {
 			if (navigationSets[s].id == navSetID) {
 				if (s == 0) {
 					favourites = navigation;
@@ -446,24 +445,23 @@ let beo = (function() {
 		
 		$(".nav-mode-name").text(setName);
 		
-		var previousKind = null;
+		let previousKind = null;
 		if (favourites[0].name && favourites[0].name != mainMenuExtension) {
 			favourites.unshift({kind: "extension", name: mainMenuExtension}, {kind: "separator"});
 		}
 		$("nav.bar .nav-content, nav.full .nav-content").empty();
 		$("nav.bar .nav-content").append('<div class="nav-spacer begin"></div>');
-		for (f in favourites) {
+		for (let f in favourites) {
 			if (favourites[f].kind == "extension") {
 				if (customisations && 
 					customisations.hiddenExtensions &&
 					customisations.hiddenExtensions.indexOf(favourites[f].name) != -1) {
 					continue; // Skip adding this extension if it's hidden.
 				}
-				var theExtension = document.querySelector(".menu-screen#"+favourites[f].name);
-				var fav = favourites[f].name;
+				const theExtension = document.querySelector(".menu-screen#"+favourites[f].name);
+				const fav = favourites[f].name;
 				if (theExtension && extensions[fav]) {
-					
-					var menuOptions = {
+					let menuOptions = {
 						onclick: 'beo.showExtension(\''+fav+'\');',
 						icon: extensions[fav].assetPath+"/symbols-black/"+extensions[fav].icon,
 						id: fav+'-menu-item',
@@ -478,7 +476,6 @@ let beo = (function() {
 					menuOptions.label = theExtension.attributes["data-menu-title"].value;
 					
 					if (!theExtension.attributes["data-hidden"]) {
-						
 						$("nav.full .nav-content").append(createMenuItem(menuOptions));
 						$("nav.bar .nav-content").append('<div class="nav-item '+menuOptions.labelClasses.join(" ")+'" data-extension-id="'+menuOptions.data['data-extension-id']+'" onclick="beo.showExtension(\''+fav+'\');">'+menuOptions.label+'</div>');
 					}
@@ -495,7 +492,7 @@ let beo = (function() {
 		}
 		$("nav.bar .nav-content").append('<div class="nav-spacer end"></div>');
 		
-		for (var i = 0; i < navigationSets.length; i++) {
+		for (let i = 0; i < navigationSets.length; i++) {
 			if (!navigationSets[i].hideFromShortcuts) selectableNavSets++;
 		}
 		if (selectableNavSets > 1) {
@@ -505,30 +502,32 @@ let beo = (function() {
 
 	function chooseNavigationMode(mode) {
 		if (mode == undefined) {
+			let navSetID;
 			$("#navigation-mode-list").empty();
 			if (localStorage.beocreateSelectedNavigationSet) {
-				var navSetID = localStorage.beocreateSelectedNavigationSet;
+				navSetID = localStorage.beocreateSelectedNavigationSet;
 			} else {
-				for (var i = 0; i < navigationSets.length; i++) {
+				for (let i = 0; i < navigationSets.length; i++) {
 					if (!navigationSets[i].hideFromShortcuts) {
-						var navSetID = i;
+						navSetID = i;
 						break;
 					}
 				}
 			}
-			for (var i = 0; i < navigationSets.length; i++) {
+			for (let i = 0; i < navigationSets.length; i++) {
 				if (!navigationSets[i].hideFromShortcuts) {
-					var setDescription = "";
+					let setName;
+					let setDescription = "";
 					if (i == 0 && !navigationSets[0].name) {
-						var setName = "Main Menu";
-						if (!navigationSets[i].description) var setDescription = "Include all main menu items";
+						setName = "Main Menu";
+						if (!navigationSets[i].description) setDescription = "Include all main menu items";
 					} else {
 						try {
-							var setName = navigationSets[i].name;
+							setName = navigationSets[i].name;
 						} catch (error) {
-							var setName = "Shortcuts";
+							setName = "Shortcuts";
 						}
-						if (navigationSets[i].description) var setDescription = navigationSets[i].description;
+						if (navigationSets[i].description) setDescription = navigationSets[i].description;
 					}
 					$("#navigation-mode-list").append(createMenuItem({
 						label: setName,
@@ -549,14 +548,14 @@ let beo = (function() {
 		}
 	}
 
-	var configuredTabs = [];
+	let configuredTabs = [];
 
 	function prepareTabBar() {
 		// Load custom tabs if set, or load default tabs.
 		if (localStorage.beoConfiguredTabs) {
 			configuredTabs = JSON.parse(localStorage.beoConfiguredTabs);
 		} else {
-			tabIndex = 0;
+			let tabIndex = 0;
 			$("nav.full .menu-item").each(function() {
 				if (tabIndex < 4) {
 					configuredTabs.push($(this).attr("data-extension-id"));
@@ -564,19 +563,10 @@ let beo = (function() {
 				}
 			});
 		}
-		reloadTabIcons();
-	}
-
-	function reloadTabIcons() {
-		/*for (var i = 0; i < 4; i++) {
-			tabItem = extensions[configuredTabs[i]];
-			$("#favourite-"+i+" img").attr("src", tabItem.assetPath+"/symbols-white/"+tabItem.icon);
-			$("#favourite-"+i+" span").text($("#"+tabItem.id).attr("data-menu-title"));
-		}*/
 	}
 
 
-	var interfaceMode = 2; // 1 = normal, 2 = compact
+	let interfaceMode = 2; // 1 = normal, 2 = compact
 
 	window.matchMedia("(max-width: 620px)").addListener(e => e.matches && updateInterfaceMode(2));
 	window.matchMedia("(min-width: 621px)").addListener(e => e.matches && updateInterfaceMode(1));
@@ -613,6 +603,7 @@ let beo = (function() {
 	window.matchMedia("(prefers-color-scheme: light)").addListener(e => e.matches && setAppearance(false));
 
 	function setAppearance(isDark, savePreference) {
+		let dark;
 		if (savePreference) {
 			if (isDark == undefined) localStorage.beocreateAppearance = "auto";
 			if (isDark == true) localStorage.beocreateAppearance = "dark";
@@ -656,7 +647,7 @@ let beo = (function() {
 		$(element).css("-webkit-mask-image", "url("+symbolPath+")").css("mask-image", "url("+symbolPath+")");
 	}
 
-	var mainMenuVisible = false;
+	let mainMenuVisible = false;
 	function toggleMainMenu() {
 		// Expands full navigation when the interface is in "compact" layout
 		if (mainMenuVisible == false) {
@@ -678,16 +669,16 @@ let beo = (function() {
 		
 	}
 
-
-	var immediateParentMenu = null;
-	var topParentMenu = null;
-	var menuState = {};
-	var navigating = false;
-	var extensionAnimations = 0;
+	let immediateParentMenu = null;
+	let topParentMenu = null;
+	let menuState = {};
+	let navigating = false;
+	let extensionAnimations = 0;
 
 	function showExtension(extension, direction = null, fromBackButton = false, invisibly = false, fromNavBar = false) {
 		if (navigating) console.error("Navigation is already in progress.");
 		
+		let newExtension;
 		if (isNaN(extension)) { // Selecting tab with name (from a menu item).
 			newExtension = extension;
 		} else { // Selecting tab with index number (from favourites bar).
@@ -695,33 +686,35 @@ let beo = (function() {
 		}
 		
 		if (!navigating && extensions[newExtension] && newExtension != selectedExtension) {
-			navigating = true;
-			oldExtension = selectedExtension;
+			let navigating = true;
+			let oldExtension = selectedExtension;
 			
+			let backTarget = null;
+			let backTitle = null;
+			let fromDeepMenu = false;
+			let extensionToActivate = null;
 			
-			var backTarget = null;
-			var backTitle = null;
-			var fromDeepMenu = false;
-			var extensionToActivate = null;
+			let animateInMenu = null;
+			let animateInDirection = null;
+			let animateOutMenu = null;
+			let animateOutDirection = null;
+			let showMenu = null;
+			let hideMenu = null;
 			
-			var animateInMenu = null;
-			var animateInDirection = null;
-			var animateOutMenu = null;
-			var animateOutDirection = null;
-			var showMenu = null;
-			var hideMenu = null;
-			
+			let selectedDeepMenu;
+			let newDeepMenu;
+
 			if (deepMenuState[oldExtension] && deepMenuState[oldExtension].length > 0) {
 				// Check if currently selected extension has a deep menu open.
-				var selectedDeepMenu = deepMenuState[oldExtension][deepMenuState[oldExtension].length-1];
+				selectedDeepMenu = deepMenuState[oldExtension][deepMenuState[oldExtension].length-1];
 			} else {
-				var selectedDeepMenu = null;
+				selectedDeepMenu = null;
 			}
 			if (deepMenuState[newExtension] && deepMenuState[newExtension].length > 0) {
 				// Check if the new extension has a deep menu open.
-				var newDeepMenu = deepMenuState[newExtension][deepMenuState[newExtension].length-1];
+				newDeepMenu = deepMenuState[newExtension][deepMenuState[newExtension].length-1];
 			} else {
-				var newDeepMenu = null;
+				newDeepMenu = null;
 			}
 			
 			if (topParentMenu) $('nav .nav-item[data-extension-id="'+topParentMenu+'"]').removeClass("selected");
@@ -757,14 +750,14 @@ let beo = (function() {
 						}
 						animateInMenu = newExtension;
 						animateInDirection = "right";
+						let nextLevel = false;
 						// Clear menu states for this stack.
 						if (menuState[newExtension] && menuState[newExtension].submenu) {
-							var nextLevel = menuState[newExtension].submenu;
+							nextLevel = menuState[newExtension].submenu;
 						} else if (menuState[oldExtension] && menuState[oldExtension].submenu) {
-							var nextLevel = menuState[oldExtension].submenu;
-						} else {
-							var nextLevel = false;
+							nextLevel = menuState[oldExtension].submenu;
 						}
+
 						while (nextLevel) {
 							menuState[nextLevel] = {};
 							if (menuState[nextLevel] &&
@@ -780,7 +773,7 @@ let beo = (function() {
 				} else {
 					// Submenu.
 					// Determine new parent menu.
-					var previousLevel = extensions[newExtension].parentMenu;
+					let previousLevel = extensions[newExtension].parentMenu;
 					immediateParentMenu = previousLevel;
 					while (previousLevel) {
 						if (extensions[previousLevel].parentMenu) {
@@ -869,7 +862,7 @@ let beo = (function() {
 				// Perform menu animations.
 				if (animateInMenu && animateInDirection) {
 					extensionAnimations++;
-					hiddenDirection = (animateInDirection == "left") ? "right" : "left";
+					let hiddenDirection = (animateInDirection == "left") ? "right" : "left";
 					document.querySelector(".menu-screen#"+animateInMenu).classList.add("block", "new", "hidden-"+hiddenDirection);
 					document.querySelector(".menu-screen#"+animateInMenu).classList.remove("hidden-"+animateInDirection);
 					setTimeout(function() {
@@ -965,7 +958,7 @@ let beo = (function() {
 		// extension: the extension to select. The history will be constructed only up until this extension.
 		if (extensionHistory[0] != extension) {
 			console.log("First extension to show is not '"+extension+"', constructing history…");
-			for (var i = 0; i < extensionHistory.length; i++) {
+			for (let i = 0; i < extensionHistory.length; i++) {
 				if (extensionHistory[i] == extension) {
 					console.log("History constructed, now showing '"+extensionHistory[i]+"' normally…");
 					showExtension(extensionHistory[i], "left", false);
@@ -983,11 +976,12 @@ let beo = (function() {
 		historyConstructed = true;
 	}
 
-	var deepMenuState = {};
-	var deepNavigating = false;
+	let deepMenuState = {};
+	let deepNavigating = false;
 	function showDeepMenu(menuID, overrideWithExtension, hideNew) {
 		if (!deepNavigating) {
 			deepNavigating = true;
+			let extension;
 			if (overrideWithExtension) {
 				extension = overrideWithExtension;
 			} else {
@@ -1005,15 +999,17 @@ let beo = (function() {
 			if (extension) {
 				if (selectedExtension != extension) showExtension(extension);
 			} else {
-				for (ext in extensions) {
+				for (let ext in extensions) {
 					if (extensions[ext].deepMenu.indexOf(menuID) != -1) {
 						showExtension(ext);
 						break;
 					}
 				}
 			}
-			newMenu = menuID;
-			back = false;
+			let newMenu = menuID;
+			let back = false;
+			let oldMenu;
+
 			if (!deepMenuState[extension]) deepMenuState[extension] = [];
 			if (deepMenuState[extension].length == 0) {
 				// This extension currently has no deep menus open.
@@ -1103,10 +1099,11 @@ let beo = (function() {
 			setTimeout(function() {
 				updateSliderWidths();
 			}, 20);
+			let deepMenu;
 			if (deepMenuState[selectedExtension] && deepMenuState[selectedExtension].length > 0) {
-				var deepMenu = deepMenuState[selectedExtension][deepMenuState[selectedExtension].length-1];
+				deepMenu = deepMenuState[selectedExtension][deepMenuState[selectedExtension].length-1];
 			} else {
-				var deepMenu = null;
+				deepMenu = null;
 			}
 			$(document).trigger("general", {header: "activatedExtension", content: {extension: extensionID, deepMenu: deepMenu}});
 			beoCom.sendToProduct("general", "activatedExtension", {extension: extensionID, deepMenu: deepMenu});
@@ -1124,7 +1121,8 @@ let beo = (function() {
 			
 		try {
 			// Start with current extension and go backwards until a parent menu is found, select that.
-			var ext = selectedExtension;
+			let ext = selectedExtension;
+			let navItems;
 			while (ext) {
 				navItems = document.querySelectorAll('nav .nav-item[data-extension-id="'+ext+'"]');
 				if (!navItems.length && extensions[ext].parentMenu) {
@@ -1134,7 +1132,7 @@ let beo = (function() {
 				}
 			}
 			if (navItems.length) {
-				for (ni in navItems) {
+				for (let ni in navItems) {
 					navItems[ni].classList.add("selected");
 				}
 			}
@@ -1189,11 +1187,9 @@ let beo = (function() {
 	});
 
 	// GENERATE MENU ITEMS
-
-
 	function createMenuItem(options) {
 		// Assembles menu item markup from input, ensuring consistency.
-		menuItem = '<div class="menu-item ';
+		let menuItem = '<div class="menu-item ';
 		
 		if (!options.classes) options.classes = [];
 		if (options.icon) options.classes.push("icon");
@@ -1321,7 +1317,7 @@ let beo = (function() {
 
 	function createCollectionItem(options) {
 		// Assembles collection item markup from input, ensuring consistency.
-		collectionItem = '<div class="collection-item ';
+		let collectionItem = '<div class="collection-item ';
 		
 		if (!options.classes) options.classes = [];
 		if (options.disabled) options.classes.push("disabled");
@@ -1396,7 +1392,7 @@ let beo = (function() {
 	document.addEventListener("scroll", function(event) {
 		if (event.target != document) {
 			try {
-				targetScreen = event.target.parentNode;
+				let targetScreen = event.target.parentNode;
 				if (targetScreen.classList.contains("large-title") ||
 					targetScreen.classList.contains("setup-large-title")) {
 					if (targetScreen.querySelector(".scroll-area").scrollTop > 45) {
@@ -1427,11 +1423,11 @@ let beo = (function() {
 
 	// NOTIFICATION
 
-	var notificationTimeout;
-	var notificationAnimationTimeout;
-	var currentNotificationID = false;
-	var notificationIcon = "";
-	var attentionIcon = new Image();
+	let notificationTimeout;
+	let notificationAnimationTimeout;
+	let currentNotificationID = false;
+	let notificationIcon = "";
+	let attentionIcon = new Image();
 
 	function notify(options, dismissWithID = currentNotificationID) { // Display a standard HUD notification
 		
@@ -1488,6 +1484,7 @@ let beo = (function() {
 				$(".hud-notification .button").addClass("hidden");
 			}
 			
+			let icon;
 			if (!options.icon) {
 				icon = "common/symbols-black/notification.svg";
 				$("#hud-notification-icon").removeClass("beo-load").addClass("hidden");
@@ -1516,6 +1513,7 @@ let beo = (function() {
 				$("#hud-progress-fill").css("width", options.progress+"%");
 			}
 			
+			let timeout;
 			if (options.timeout == undefined) {
 				timeout = 3000;
 			} else {
@@ -1574,7 +1572,8 @@ let beo = (function() {
 
 	$(document).on("click", ".disclosure", function() {
 		if ($(this).attr("data-disclosure")) {
-			element = $(this).attr("data-disclosure");
+			let element = $(this).attr("data-disclosure");
+			let isOn;
 			if ($(this).hasClass("on")) {
 				//$(this).removeClass("on");
 				disclosure(element, false);
@@ -1613,13 +1612,16 @@ let beo = (function() {
 		// Translate this screen or title.
 		theExtension.setAttribute("data-menu-title", localisedString(theExtension.getAttribute("data-menu-title"), "menuTitle", extensionID));
 		
-		var elements = theExtension.querySelectorAll("*[data-localisation]");
-		for (var element of elements) {
+		let elements = theExtension.querySelectorAll("*[data-localisation]");
+		for (let element of elements) {
 			element.innerText = localisedString(element.innerText, element.getAttribute("data-localisation"), extensionID);
 		}
 	}
 
+	let translations;
+
 	function localisedString(defaultString, translationID, extensionID) {
+		let finalString;
 		if (typeof translations !== 'undefined' && translations[extensionID]) {
 			if (translations[extensionID][translationID]) {
 				finalString = translations[extensionID][translationID];
@@ -1639,9 +1641,9 @@ let beo = (function() {
 			format = localisedString(format, translationID, extensionID);
 		}
 		
-		finalString = format;
-		textItems = format.split("%@");
-		finalTextItems = [];
+		let finalString = format;
+		let textItems = format.split("%@");
+		let finalTextItems = [];
 		if (textItems.length > 1) {
 			if (dynamics == undefined) dynamics = [];
 			textItems.forEach(function(item, index) {
@@ -1663,7 +1665,7 @@ let beo = (function() {
 	}
 
 	function commaAndList(list, andWord, translationID, extensionID) {
-
+		let finalString;
 		if (translationID && extensionID) {
 			andWord = localisedString(andWord, translationID, extensionID);
 		}
@@ -1687,12 +1689,12 @@ let beo = (function() {
 
 	// ASK
 
-	var askOpen = false;
-	var askTransitionTimeout;
-	var askCallbacks = null;
-	var askCancelCallback = null;
-	var askParent = null;
-	var askExiting = false;
+	let askOpen = false;
+	let askTransitionTimeout;
+	let askCallbacks = null;
+	let askCancelCallback = null;
+	let askParent = null;
+	let askExiting = false;
 	function ask(menuID, dynamicContent, callbacks, cancelCallback) {
 		if (menuID) {
 			if (askOpen) {
@@ -1734,16 +1736,12 @@ let beo = (function() {
 		askOpen = true;
 		if (callbacks) askCallbacks = callbacks;
 		if (cancelCallback) askCancelCallback = cancelCallback;
-		/*if (cancelAction) {
-			$("#ask-back-plate").attr("onclick", cancelAction);
-		} else {
-			$("#ask-back-plate").attr("onclick", "ask();");
-		}*/
+
 		askParent = $("#"+menuID).parent();
 		$("#ask-content").append($("#"+menuID).detach());
 		$("#ask-content > *").addClass("menu-content ask-menu-content");
 		if (dynamicContent) {
-			for (var i = 0; i < dynamicContent.length; i++) {
+			for (let i = 0; i < dynamicContent.length; i++) {
 				$("#ask-content .ask-dynamic-"+i).text(dynamicContent[i]);
 			}
 		}
@@ -1769,11 +1767,11 @@ let beo = (function() {
 
 	// HOLD DOWN ON ELEMENTS
 
-	var holdActionActivated = false;
-	var holdTarget = null;
-	var holdPosition = [];
-	var holdTimeout = null;
-	var clickHandler = null;
+	let holdActionActivated = false;
+	let holdTarget = null;
+	let holdPosition = [];
+	let holdTimeout = null;
+	let clickHandler = null;
 
 	// Drag detector cancels the appearance of the contextual menu in case the user moves away from the target whilst holding down.
 	$(document).on("mouseout mousemove mouseup", ".hold", function(event) {
@@ -1832,10 +1830,10 @@ let beo = (function() {
 	// POPUP VIEWS
 
 	// Common popup view with dynamic content.
-	var currentPopup = null;
-	var currentPopupParent = null;
-	var popupCancelAction = null;
-	var popupCancelTimeout;
+	let currentPopup = null;
+	let currentPopupParent = null;
+	let popupCancelAction = null;
+	let popupCancelTimeout;
 	function showPopupView(popupContentID, overridePopup, cancelAction) {
 		popupCancelAction = null;
 		if (popupContentID) {
@@ -1854,7 +1852,6 @@ let beo = (function() {
 				$("#open-popup, #open-popup-back-plate").addClass("block");
 				setTimeout(function() {
 					$("#open-popup, #open-popup-back-plate").addClass("visible");
-					updatePopupHeight();
 				}, 100);
 				if (cancelAction != undefined) popupCancelAction = cancelAction;
 			}
@@ -1885,19 +1882,6 @@ let beo = (function() {
 		}
 	}
 
-	function updatePopupHeight() {
-	/*	if (interfaceMode == 1) {
-			if ((windowHeight - 100) == $("#open-popup .popup-content").innerHeight()) {
-				$("#open-popup .popup-content").css("height", "100%");
-			} else {
-				$("#open-popup .popup-content").css("height", "");
-			}
-		} else {
-			$("#open-popup .popup-content").css("height", "");
-		}*/
-	}
-
-
 	// WIZARD CONTAINER
 
 	function wizard(wizardContainer, newScreen = null, buttons = null, noAnimation = false) {
@@ -1911,10 +1895,10 @@ let beo = (function() {
 			if (!$(wizardContainer+" "+newScreen).hasClass("block")) {
 				if (buttons && typeof buttons == "object") buttons = buttons.join(", ");
 				// Find the current screen and its relationship to the new screen.
-				hideScreen = $(wizardContainer+" .block");
-				showScreen = $(wizardContainer+" "+newScreen);
-				hideTo = null;
-				showFrom = null;
+				let hideScreen = $(wizardContainer+" .block");
+				let showScreen = $(wizardContainer+" "+newScreen);
+				let hideTo = null;
+				let showFrom = null;
 				if (showScreen.prevAll(".block").length) {
 					// Current screen is before the new.
 					hideTo = "left";
@@ -1928,7 +1912,7 @@ let beo = (function() {
 					showScreen.removeClass("hidden-"+hideTo).addClass("hidden-"+showFrom);
 					
 					if (!noAnimation) {
-						buttonsWereDisabled = false;
+						let buttonsWereDisabled = false;
 						if (buttons) {
 							buttonsWereDisabled = $(buttons).hasClass("disabled");
 							$(buttons).addClass("disabled");
@@ -1961,11 +1945,11 @@ let beo = (function() {
 
 	// TEXT INPUT
 
-	var textInputCallback;
-	var textInputMode = 0;
-	var textInputOptions;
-	var textInputCloseTimeout;
-	var textInputOpen = false;
+	let textInputCallback;
+	let textInputMode = 0;
+	let textInputOptions;
+	let textInputCloseTimeout;
+	let textInputOpen = false;
 
 	function startTextInput(type, title, prompt, options, callback, cancelCallback) {
 		clearTimeout(textInputCloseTimeout);
@@ -2021,11 +2005,11 @@ let beo = (function() {
 		textInputOpen = true;
 	}
 
-	var textInputValid = false;
+	let textInputValid = false;
 	function validateTextInput() {
-		textInputValid = true;
-		txt = $("#text-input-plain").val();
-		passwd = $("#text-input-password").val();
+		let textInputValid = true;
+		let txt = $("#text-input-plain").val();
+		let passwd = $("#text-input-password").val();
 		if (textInputMode == 1 || textInputMode == 3) {
 			if (!txt) {
 				if (textInputOptions.optional && textInputOptions.optional.text) {
@@ -2058,7 +2042,7 @@ let beo = (function() {
 	}
 
 	function togglePasswordReveal() {
-		var fieldType = "password" // default
+		let fieldType = "password" // default
 		
 		if($("#text-input-password").prop("type") == "password") {
 			fieldType = "text";
@@ -2070,8 +2054,8 @@ let beo = (function() {
 
 	function submitText() {
 		if (textInputValid) {
-			txt = $("#text-input-plain").val();
-			passwd = $("#text-input-password").val();
+			const txt = $("#text-input-plain").val();
+			const passwd = $("#text-input-password").val();
 			cancelText(true);
 			textInputCallback({text: txt, password: passwd});
 			return true;
@@ -2095,9 +2079,8 @@ let beo = (function() {
 		textInputOpen = false;
 	}
 
-	//function prepareTextInput() {
 	$(document).on('input blur', "input", function(event) {
-		eventType = event.type;
+		let eventType = event.type;
 		if (eventType == "focusout") eventType = "blur";
 		if ($(this).attr("id") == "text-input-plain" && eventType == "input") {
 			validateTextInput();
@@ -2112,21 +2095,20 @@ let beo = (function() {
 			}
 		}
 	});
-	//}
-
 
 	// UPLOAD FILES
 
-	var uploadToExtension = null;
-	var uploadOptions = null;
-	var uploadNotifyTimeout;
+	let uploadToExtension = null;
+	let uploadOptions = null;
+	let uploadNotifyTimeout;
 	function uploadFile(options, extension, file) {
 		if (file && file.name && (uploadToExtension || extension)) {
 			if (extension) uploadToExtension = extension;
 			console.log(file);
 			if (options) uploadOptions = options;
-			types = [];
-			canUpload = false;
+			let types = [];
+			let canUpload = false;
+			let fileExtension;
 			if (uploadOptions && uploadOptions.types) {
 				types = uploadOptions.types;
 			} else if (options && options.types) {
@@ -2214,12 +2196,8 @@ let beo = (function() {
 	// MULTI-TOUCH EVENTS
 
 	document.ontouchstart = function(event) {
-
-		// Edge swipes.
 		if (event.target.id.indexOf("-edge-swipe") > -1) {
 			if (event.targetTouches) {
-				var touch = event.targetTouches[0];
-				//edgeSwipe(0, touch.pageX, event.target.id);
 				event.preventDefault();
 			}
 		}
@@ -2227,41 +2205,24 @@ let beo = (function() {
 		if (event.target.className.indexOf("hold") != -1) {
 			startHold(event.target, event);
 		}
-		
 	}
 
 	document.ontouchmove = function(event) {
-
-		// Edge swipes.
 		if (event.target.id.indexOf("-edge-swipe") > -1) {
 			if (event.targetTouches) {
-				var touch = event.targetTouches[0];
-				//edgeSwipe(1, touch.pageX, event.target.id);
 				event.preventDefault();
 			}
 		}
 		
 		if (event.target.className.indexOf("hold") != -1) {
 			endHold(event);
-		}
-		
-		
+		}	
 	}
 
-	document.ontouchend = function(event) {
-
-		// Edge swipes.
-		if (event.target.id.indexOf("-edge-swipe") > -1) {
-			//edgeSwipe(2);
-		}
-		
-		
+	document.ontouchend = function(event) {		
 		if (event.target.className.indexOf("hold") != -1) {
-			//event.preventDefault();
 			endHold(event);
 		}
-		
-		
 	}
 
 	function insertConnectionGuide() {
@@ -2280,18 +2241,17 @@ let beo = (function() {
 
 	// https://stackoverflow.com/questions/359788/how-to-execute-a-javascript-function-when-i-have-its-name-as-a-string
 	function executeFunction(functionName, args) {
-		//var args = Array.prototype.slice.call(arguments, 2);
-		namespaces = functionName.split(".");
-		func = namespaces.pop();
-		context = window;
-		for(var i = 0; i < namespaces.length; i++) {
+		const namespaces = functionName.split(".");
+		const func = namespaces.pop();
+		let context = window;
+		for(let i = 0; i < namespaces.length; i++) {
 			context = context[namespaces[i]];
 		}
 		return context[func].apply(context, args);
 	}
 
 	function functionExists(funcName) {
-		namespaces = funcName.split(".");
+		let namespaces = funcName.split(".");
 		if (namespaces.length == 1) {
 			if (window[funcName]) {
 				return true;
@@ -2332,7 +2292,7 @@ let beo = (function() {
 	// https://stackoverflow.com/questions/38241480/detect-macos-ios-windows-android-and-linux-os-with-js
 	// (modified to return a human-readable string that will be used in the UI)
 	function getOS() {
-		var userAgent = window.navigator.userAgent,
+		let userAgent = window.navigator.userAgent,
 			platform = window.navigator.platform,
 			macosPlatforms = ['Macintosh', 'MacIntel', 'MacPPC', 'Mac68K'],
 			windowsPlatforms = ['Win32', 'Win64', 'Windows', 'WinCE'],
