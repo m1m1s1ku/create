@@ -1,4 +1,4 @@
-/*Copyright 2018-2020 Bang & Olufsen A/S
+/* Copyright 2018-2020 Bang & Olufsen A/S
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
 in the Software without restriction, including without limitation the rights
@@ -16,16 +16,14 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.*/
 
 // BEOCREATE CONNECT
+const inElectron = true;
+let debug = true;
 
-
-var inElectron = false;
-var debug = true;
 const { ipcRenderer, shell, remote } = require('electron');
 const ipc = ipcRenderer;
-inElectron = true;
 
-var darkAppearance = false;
-var windows = false;
+let darkAppearance = false;
+let windows = false;
 
 window.matchMedia("(prefers-color-scheme: dark)").addListener(e => e.matches && setAppearance(true))
 window.matchMedia("(prefers-color-scheme: light)").addListener(e => e.matches && setAppearance(false))
@@ -102,7 +100,7 @@ if (ipc) {
 	});
 }
 
-windowTitle = "";
+let windowTitle = "";
 function setWindowTitle(title) {
 	if (!title) {
 		$("#title-bar").removeClass("title");
@@ -203,7 +201,7 @@ function titleBarMode(mode) {
 // MAIN MENU
 
 // Beautiful and bold colours designed by Polly Bosworth. Use them in fun combinations!
-var menuColourThemes = [
+let menuColourThemes = [
 	["mariner", "waterleaf", "spindle"],
 	["turquoise", "waxflower", "yellow"],
 	["turquoise", "waterleaf", "spindle"],
@@ -211,9 +209,10 @@ var menuColourThemes = [
 	["carnation", "cherub", "spindle"]
 ];
 
-var menuOpen = true;
-var menuTimeout;
-var shouldEnableRefreshButton = false;
+let menuOpen = true;
+let menuTimeout;
+let shouldEnableRefreshButton = false;
+
 function toggleMenu(force) {
 	clearTimeout(menuTimeout);
 	if (force != undefined) {
@@ -298,8 +297,7 @@ document.addEventListener("scroll", function(event) {
 }, true);
 
 
-inProductView = false;
-sectionChangeTimeout = null;
+let inProductView = false;
 
 function showSection(sectionID, closeMenu, screenID) {
 	inProductView = (sectionID == "product-view") ? true : false;
@@ -354,9 +352,11 @@ function toggle(inElement, outElement) {
 // PRODUCT DISCOVERY
 
 // Receives discovered products from the app.
-products = {};
+let products = {};
+
 selectedProduct = null;
-connectOnDiscovery = {identifier: null, systemName: null};
+
+let connectOnDiscovery = {identifier: null, systemName: null};
 
 
 if (ipc) {
@@ -501,7 +501,7 @@ function getProductInfo(product) {
 	return {model: model, image: image, classes: classes};
 }
 
-var productConnectionStatus = "disconnected";
+let productConnectionStatus = "disconnected";
 
 function configureProduct(fullname, fromDiscovery) {
 	if (products[fullname]) {
@@ -557,7 +557,7 @@ if (remote) {
 
 // ASSISTANT FLOW
 
-var currentAssistant = null;
+let currentAssistant = null;
 function startAssistant(assistant) {
 	if (assistant) currentAssistant = assistant;
 	shouldEnableRefreshButton = false;
@@ -608,7 +608,7 @@ function endAssistant(hideOnly) {
 	if (!hideOnly) currentAssistant = null;
 }
 
-var assistantStep = 0;
+let assistantStep = 0;
 function assistantFlow(step) {
 	if (step != undefined) {
 		if (isNaN(step)) {

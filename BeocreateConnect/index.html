@@ -17,22 +17,6 @@
 				<div class="toolbar-button disabled visible" id="menu-button" onclick="toggleMenu();"><div class="button-icon"></div></div>
 				<div class="toolbar-button visible" id="refresh-button" onclick="refresh();"><div class="button-icon"></div></div>
 			</div>
-			<!--<div class="toolbar-button test" id="menu-button-neue"><div class="button-icon" id="show-all"></div></div>-->
-			<!--<div id="menu-button" class="menu-open hide" onclick="toggleMenu();">
-				<div class="moving-menu-icon">
-					<div class="menu-line-1"></div>
-					<div class="menu-line-2"></div>
-					<div class="menu-line-3"></div>
-					<div class="menu-close"></div>
-					<div class="menu-boxes"></div>
-					
-					<div class="menu-box menu-box-1"></div>
-					<div class="menu-box menu-box-2"></div>
-					<div class="menu-box menu-box-3"></div>
-					<div class="menu-box menu-box-4"></div>
-				</div>
-				<span>Home</span>
-			</div>-->
 			<img class="header-beo" src="images/create-black.svg">
 			<div id="window-title"></div>
 			
@@ -56,101 +40,44 @@
 		<div id="title-bar-padding"></div>
 		
 		<div class="content-area">
-		
-		
-			<div id="main-menu"> 
-					
-					<!--<div class="colour-background">
-						<div class="element element-1"></div>
-						<div class="element element-2"></div>
-						<div class="element element-3"></div>
-					</div>-->
-					
-					
-					
+			<div id="main-menu"> 				
 				<div class="scroll-area" id="main-menu-scroll-area">
-					
 					<div id="product-notification" class="hidden">
 						<h3>Product is restarting</h3>
 						<p>Please wait...</p>
 					</div>
-					
-					<div class="above-fold">
-						<div class="menu-group first-menu-visit">
-							<!--<h1 class="large">Beocreate Connect</h1>-->
-							<p><strong>Beocreate Connect</strong> helps you set up and control upcycled Bang &amp; Olufsen speakers and other Beocreate sound systems.</p>
-						</div>
-						
-						<!--<div class="menu-group second-menu-visit white">
-							<h1 class="large">BeoCreate</h1>
-						</div>-->
-						
-						
+					<div class="above-fold">											
 						<div class="menu-group">
 						<h2>Products</h2>
-							
 							<div class="collection found-products">
 								<div class="collection-item set-up" onclick="setUpNew();">
 									<img class="square-helper" src="images/square-helper.png"> 
 									<div class="collection-item-content">
-										
 										<div class="collection-item-text free-form">
-											
 											<div class="collection-label">Set Up New</div>
 										</div>
 									</div>
 								</div>
-								
 								<div class="collection-item no-products">
 									<img class="square-helper" src="images/square-helper.png"> 
 									<div class="collection-item-content">
-										
 										<div class="collection-item-text free-form">
-											
 											<div class="collection-label">Products found on the network will appear here</div>
 										</div>
 									</div>
 								</div>
 								
-								
-								
 								<div class="collection-item spacer first"></div>
 								<div class="collection-item spacer"></div>
 								<div class="collection-item spacer"></div>
 							</div>
-								
-						</div>
-						<div class="scroll-invitation">Help &amp; More</div>
-					</div>
-					
-					<div class="menu-content">
-						<div id="support">
-								<!--<h2>Help &amp; Other Resources</h2>-->
-								<ul class="links">
-									
-									<li><a href="https://github.com/bang-olufsen/create/wiki/Find-Your-Product" target="_blank">Help finding the product</a></li>
-									<li><a href="https://www.hifiberry.com/beocreate" target="_blank">Upcycle vintage Bang &amp; Olufsen loudspeakers</a></li>
-									<li><a href="https://www.hifiberry.com/beocreate/beocreate-doc/beocreate-hardware-documentation/" target="_blank">Beocreate 4-Channel Amplifier documentation</a></li>
-									<li><a href="https://support.hifiberry.com/hc/en-us/community/topics/200402012-Software" target="_blank">HiFiBerry support forums</a></li>
-									<li><a href="https://github.com/bang-olufsen/create" target="_blank">Source code</a></li>
-									<li><a href="https://bang-olufsen.com" target="_blank">Bang &amp; Olufsen website</a></li>
-								</ul>
 						</div>
 					</div>
-					<!--
-					<div class="menu-group" id="robots">
-						<img class="robot" src="images/beorobot1.svg">
-					</div>-->
-					
 				</div>
 			</div>
 			
-			
 			<div class="app-section" id="set-up-new">
-				
-				
 				<div class="menu-screen" id="set-up-new-start">
-					
 					<div class="setup-choice" onclick="startAssistant('createCard');">
 						<div class="number">01</div>
 						<h1>Prepare Card</h1>
@@ -162,7 +89,6 @@
 						<h1>Find &amp; Set Up</h1>
 						<p>Turn on and configure the product for the first time.</p>
 					</div>
-					
 				</div>
 				
 				<div class="menu-screen side-by-side" id="select-card">
@@ -234,39 +160,26 @@
 							
 						
 							<div class="menu-group">
-									
 									<div class="collection found-products">
-										
 										<div class="collection-item no-products">
 											<img class="square-helper" src="images/square-helper.png"> 
 											<div class="collection-item-content">
-												
 												<div class="collection-item-text free-form">
-													
 													<div class="collection-label">Found products will appear here</div>
 												</div>
 											</div>
 										</div>
-										
-										
 										<div class="collection-item spacer first"></div>
 										<div class="collection-item spacer"></div>
 										<div class="collection-item spacer"></div>
 									</div>
-										
 								</div>
-						
 						</div>
 					</div>
 				</div>
-				
-				
 			</div>
 			
-		
 			<iframe class="app-section" id="product-view"></iframe>
-		
-		
 		</div>
 		
 		<div id="assistant-bar">
@@ -277,6 +190,5 @@
 				Next Step
 			</div>
 		</div>
-			
 	</body>
 </html>
