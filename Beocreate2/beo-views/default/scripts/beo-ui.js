@@ -1172,7 +1172,7 @@ let beo = (function() {
 	}
 
 	$(document).on("ui", function(event, data) {
-		if (data.header == "settings") {
+		if (data && data.header == "settings") {
 			if (data.content.settings) {
 				uiSettings = data.content.settings;
 				if (uiSettings.disclosure) {
