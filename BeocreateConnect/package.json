@@ -3,7 +3,7 @@
  "productName": "Beocreate Connect",
  "version": "0.3.0",
  "description": "Desktop utility for Beocreate-based sound systems",
- "main": "build/index.js",
+ "main": "./build/index.js",
  "scripts": {
   "compile": "tsc && cp index.html build/ && cp -R scripts build && cp -R images build && cp style.css build/ && cp -R fonts build",
   "start": "pnpm run compile && electron ./build",
@@ -39,6 +39,14 @@
   "directories": {
    "buildResources": "build"
   },
+  "files": [
+    "build/**/*",
+    "package.json"
+  ],
+  "extends": null,
+  "extraMetadata": {
+    "main": "build/index.js"
+  },
   "mac": {
    "target": [
     "zip",
@@ -50,8 +58,7 @@
    "identity": null
   },
   "dmg": {
-   "title": "Beocreate Connect",
-   "background": "build/background.tiff"
+   "title": "Beocreate Connect"
   },
   "win": {
    "icon": "build/create-speaker.ico",
