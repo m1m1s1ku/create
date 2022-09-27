@@ -165,7 +165,6 @@ function createWindow () {
 		title: "Beocreate Connect",
 		frame: false,
 		show: false,
-		fullscreenWindowTitle: true,
 		backgroundColor: '#FFFFFF', 
 		webPreferences: { experimentalFeatures: false, nodeIntegration: true, contextIsolation: false,}
 	});
