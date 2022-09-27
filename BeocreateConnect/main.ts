@@ -171,8 +171,11 @@ function createWindow () {
 	
 	mainWindowState.manage(win);
   
-    win.loadFile('index.html')
-    
+	// @todo : use build/index.html for release bundling.
+	// demistify that
+    //win.loadFile('build/index.html')
+    win.loadFile('index.html');
+
     win.webContents.on('did-finish-load', () => {
 		if (process.platform == 'darwin') {
 			win.webContents.send('colourSchemeIsDark', nativeTheme.shouldUseDarkColors);

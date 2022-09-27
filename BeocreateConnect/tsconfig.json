@@ -11,6 +11,10 @@
       "*": ["node_modules/*"]
     }
   },
+  "exclude": [
+    "dist/**",
+    "build/**",
+  ],
   "include": [
     "**/*"
   ]
