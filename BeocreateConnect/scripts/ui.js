@@ -528,9 +528,11 @@ function addProduct(product) {
 	<div class="collection-item-content">
 		<img class="collection-icon" src="${info.image}">
 		<div class="collection-item-text">
-			<div class="collection-label upper product-type">${info.model}</div>
-			<div class="product-name collection-label lower">${product.name}</div>
-			<div class="bound-to collection-label lower">${product.boundTo ? `Route : ${product.boundTo}` : ''}</div>
+			<!-- <div class="collection-label upper product-type">${info.model}</div> -->
+			<div class="product-type collection-label upper">${product.name}</div>
+			<div class="bound-to collection-label lower">${product.boundTo ? `<svg style="width: 1em" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+			<path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
+		  </svg> ${product.boundTo}` : ''}</div>
 		</div>
 	</div>`;
 
