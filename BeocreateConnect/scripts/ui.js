@@ -471,6 +471,10 @@ function refresh() {
 	}
 }
 
+function bindRCAToAMP() {
+	ipc.send("bindRCAToAMP");
+}
+
 function updateProductLists() {
 	refreshing = true;
 

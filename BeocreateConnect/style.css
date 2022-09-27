@@ -324,6 +324,10 @@ strong {
 	background-image: url(images/symbols-black/refresh.svg);
 }
 
+#bind-button .button-icon {
+	background-image: url(images/symbols-black/connect.svg);
+}
+
 #toolbar-wrap {
 	position: absolute;
 	left: 78px;

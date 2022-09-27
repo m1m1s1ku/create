@@ -25,6 +25,8 @@ const windowStateKeeper = require('electron-window-state');
 const { Browser, tcp } = require("dnssd2")
 const { networkInterfaces } = require("os");
 
+const { NodeSSH } = require('node-ssh')
+
 let debug = false;
 let activeWindow = true;
 
@@ -188,7 +190,7 @@ function createWindow () {
     })
   
     // Open the DevTools.
-    win.webContents.openDevTools()
+    // win.webContents.openDevTools()
   
     win.on('closed', () => {
 	  win = null;
@@ -388,7 +390,23 @@ ipcMain.on("getAllProducts", (event, arg) => {
 ipcMain.on("refreshProducts", (event, arg) => {
 	startDiscovery(); 
 	startManualDiscovery();
-});  
+});
+
+ipcMain.on("bindRCAToAMP", (event, arg) => {
+	console.warn('internal bind');
+	const ssh = new NodeSSH()
+
+	ssh.connect({
+		host: 'rcaberry.local',
+		username: 'root',
+		password: 'hifiberry'
+	}).then(() => {
+		ssh.execCommand('arecord -D plughw:0,0 -f S24_LE -t wav -r 60000 -c2 | ssh -C root@192.168.1.18 -i rcaberry aplay -f S24_LE -t wav -r 60000 -c2').then(function(result) {
+			console.log('STDOUT: ' + result.stdout)
+			console.log('STDERR: ' + result.stderr)
+		});
+	})
+});
 
 let manuallyDiscoveredProduct = null;
 let manualDiscoveryInterval: string | number | NodeJS.Timeout;
