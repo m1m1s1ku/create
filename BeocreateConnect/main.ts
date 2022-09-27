@@ -418,6 +418,7 @@ function connectSSH() {
 	}).then(() => {
 		console.warn('rcaberry bound to hifiberry')
 		bindRunning = true;
+		// @todo : Add settings to create this command dynamically.
 		sshInstance.execCommand('arecord -D plughw:0,0 -f S24_LE -t wav -r 60000 -c2 | ssh -C root@192.168.1.18 -i rcaberry aplay -f S24_LE -t wav -r 60000 -c2', { pty: true, onChannel: (client) => {
 			clientChannel = client;
 		} }).then(function(result) {
