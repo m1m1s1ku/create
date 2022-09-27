@@ -5,7 +5,7 @@
  "description": "Desktop utility for Beocreate-based sound systems",
  "main": "build/index.js",
  "scripts": {
-  "compile": "tsc && cp index.html build/ && cp -R scripts build && cp -R images build && cp beocreate-app2018.css build/",
+  "compile": "tsc && cp index.html build/ && cp -R scripts build && cp -R images build && cp style.css build/",
   "start": "npm run compile && electron ./build",
   "dist": "electron-builder",
   "pack": "electron-builder --dir",

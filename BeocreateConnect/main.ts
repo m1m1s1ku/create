@@ -1,4 +1,6 @@
-/*Copyright 2018-2020 Bang & Olufsen A/S
+/*
+Copyright 2018-2020 Bang & Olufsen A/S
+
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
 in the Software without restriction, including without limitation the rights
@@ -16,8 +18,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.*/
 
 // BEOCREATE CONNECT
-
-
 const { app, Menu, BrowserWindow, ipcMain, nativeTheme, systemPreferences, shell } = require('electron')
 
 const windowStateKeeper = require('electron-window-state');
@@ -25,11 +25,10 @@ const windowStateKeeper = require('electron-window-state');
 const { Browser, tcp } = require("dnssd2")
 const { networkInterfaces } = require("os");
 
-var debug = false;
-var activeWindow = true;
+let debug = false;
+let activeWindow = true;
 
 // MENU
-
 interface SubmenuItem {
 	label?: string;
 	click?: () => void; 
@@ -93,20 +92,6 @@ const template: MenuItemRebrand[] = [
     submenu: [
       { role: 'minimize' },
       { role: 'close' }
-    ]
-  },
-  {
-    role: 'help',
-    submenu: [
-		{ label: 'Guides && Documentation',
-		click () { shell.openExternal('https://www.hifiberry.com/beocreate/beocreate-doc/') }},
-		{ type: 'separator' },
-		{ label: 'Visit Bang && Olufsen',
-        click () { shell.openExternal('https://www.bang-olufsen.com') }},
-		{ label: 'Visit HiFiBerry',
-		click () { shell.openExternal('https://www.hifiberry.com') }},
-		{ label: 'View Source Code',
-		click () { shell.openExternal('https://github.com/bang-olufsen/create') }},
     ]
   }
 ]
@@ -307,23 +292,21 @@ if (process.platform == "darwin" && win) {
 }
   
 // FIND BEOCREATE SYSTEMS
-var browser = null;
-var startedOnce = false;
+let browser = null;
+let startedOnce = false;
 function startDiscovery(once?: boolean) { // Start or restart discovery.
 	if (!once || !startedOnce) {
 	  	if (!browser) {
 		  	browser = new Browser(tcp('beocreate'), {maintain: true});
 	
-	  		
-	  		browser.on('serviceUp', service => discoveryEvent("up", service, false));
-	  		browser.on('serviceDown', service => discoveryEvent("down", service, false));
-	  		browser.on('serviceChanged', service => discoveryEvent("changed", service, false));
+	  		browser.on('serviceUp', service => discoveryEvent("up", service));
+	  		browser.on('serviceDown', service => discoveryEvent("down", service));
+	  		browser.on('serviceChanged', service => discoveryEvent("changed", service));
 	  		browser.on('error', error => console.log("dnssd error: "+error));
-	 
-	  		
 	  	} else {
 	  		stopDiscovery();
 	  	}
+
 	  	console.log("Starting discovery.");
 		browser.start();
 		bonjourProductCount = 0;
@@ -341,9 +324,10 @@ function stopDiscovery() {
 	}
 }
 
-var products = {};
-var bonjourProductCount = 0;
-function discoveryEvent(event, service, manual) {
+let products = {};
+let bonjourProductCount = 0;
+
+function discoveryEvent(event: string, service: { fullname: string | number; addresses: any; txt: any; }) {
 	if (debug) console.log(event, new Date(Date.now()).toLocaleString(), service.fullname, service.addresses, service.txt);
 	if (event == "up" || event == "down") {
 		let list = browser.list();
@@ -361,7 +345,7 @@ function discoveryEvent(event, service, manual) {
 	
 }
 
-function refreshProducts(services?) {
+function refreshProducts(services?: any[]) {
 	if (services == null) {
 		services = [];
 		if (browser) services = browser.list();
@@ -369,7 +353,7 @@ function refreshProducts(services?) {
 	if (services.length == 0 && manuallyDiscoveredProduct) services.push(manuallyDiscoveredProduct);
 	if (services) {
 		// Find out which services have been added.
-		for (var s = 0; s < services.length; s++) {
+		for (let s = 0; s < services.length; s++) {
 			if (!products[services[s].fullname]) {
 				setProductInfo(services[s]); // Adds product.
 				//console.log(products[services[s].fullname].addresses);
@@ -380,7 +364,7 @@ function refreshProducts(services?) {
 		// Find out which services have been removed.
 		for (let fullname in products) {
 			let serviceFound = -1;
-			for (var s = 0; s < services.length; s++) {
+			for (let s = 0; s < services.length; s++) {
 				if (services[s].fullname == fullname) serviceFound = s;
 			}
 			if (serviceFound == -1) {
@@ -391,7 +375,7 @@ function refreshProducts(services?) {
 	}
 }
 
-function setProductInfo(service, manual?) {
+function setProductInfo(service: { fullname: any; addresses: any; txt: any; host?: any; port?: any; name?: any; manual?: any; }) {
 	let modelID = null;
 	let modelName = null;
 	let systemID = null;
@@ -450,9 +434,9 @@ ipcMain.on("refreshProducts", (event, arg) => {
 	startManualDiscovery();
 });  
 
-var manuallyDiscoveredProduct = null;
-var manualDiscoveryInterval;
-var manualDiscoveryAddress = "10.0.0.1";
+let manuallyDiscoveredProduct = null;
+let manualDiscoveryInterval: string | number | NodeJS.Timeout;
+let manualDiscoveryAddress = "10.0.0.1";
 async function discoverProductAtAddress(address) {
 	if (bonjourProductCount == 0) {
 		const { fetch } = await import('got-fetch');
@@ -495,7 +479,7 @@ function stopManualDiscovery() {
 	clearInterval(manualDiscoveryInterval);
 }
 
-var ipCheckInterval;
+let ipCheckInterval: string | number | NodeJS.Timeout;
 function startCheckingIPAddress() {
 	hasIPChanged();
 	ipCheckInterval = setInterval(function() {
@@ -513,7 +497,7 @@ function hasIPChanged() {
 	let ifaces = networkInterfaces();
 	let newIPs = []
 	for (let iface in ifaces) {
-		for (var i = 0; i < ifaces[iface].length; i++) {
+		for (let i = 0; i < ifaces[iface].length; i++) {
 			if (ifaces[iface][i].family == "IPv4") {
 				newIPs.push(ifaces[iface][i].address);
 			}
@@ -537,7 +521,7 @@ function equals(array) {
     if (this.length != array.length)
         return false;
 
-    for (var i = 0, l=this.length; i < l; i++) {
+    for (let i = 0, l=this.length; i < l; i++) {
         // Check if we have nested arrays
         if (this[i] instanceof Array && array[i] instanceof Array) {
             // recurse into the nested arrays
@@ -551,5 +535,3 @@ function equals(array) {
     }       
     return true;
 }
-// Hide method from for-in loops
-Object.defineProperty(Array.prototype, "equals", {enumerable: false});

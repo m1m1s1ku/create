@@ -3,12 +3,7 @@
 	<head>
 		<meta charset="UTF-8">
 		<title>Beocreate Connect</title>
-		<link rel="stylesheet" type="text/css" href="beocreate-app2018.css" />
-		
-		<script>if (typeof module === 'object') {window.module = module; module = undefined;}</script>
-		<script src="scripts/jquery-1.10.2.min.js"></script>
-		<script>if (window.module) module = window.module;</script>
-		<script src="scripts/ui.js"></script>
+		<link rel="stylesheet" type="text/css" href="style.css" />
     </head>
 	<body class="mac no-dark-ui-animation windowed">
 		<div id="title-bar">
@@ -17,28 +12,24 @@
 				<div class="toolbar-button disabled visible" id="menu-button" onclick="toggleMenu();"><div class="button-icon"></div></div>
 				<div class="toolbar-button visible" id="refresh-button" onclick="refresh();"><div class="button-icon"></div></div>
 			</div>
-			<img class="header-beo" src="images/create-black.svg">
 			<div id="window-title"></div>
 			
 			<div id="windows-controls">
-					  <!-- Window controls for Windows -->
-				      <div class="windows-button" id="min-button">
-				        <span>&#xE921;</span>
-				      </div>
-				      <div class="windows-button" id="max-button">
-				        <span>&#xE922;</span>
-				      </div>
-				      <div class="windows-button" id="restore-button">
-				        <span>&#xE923;</span>
-				      </div>
-				      <div class="windows-button" id="close-button">
-				        <span>&#xE8BB;</span>
-				      </div>
+				<div class="windows-button" id="min-button">
+					<span>&#xE921;</span>
+				</div>
+				<div class="windows-button" id="max-button">
+					<span>&#xE922;</span>
+				</div>
+				<div class="windows-button" id="restore-button">
+					<span>&#xE923;</span>
+				</div>
+				<div class="windows-button" id="close-button">
+					<span>&#xE8BB;</span>
+				</div>
 			</div>
 		</div>
-		
 		<div id="title-bar-padding"></div>
-		
 		<div class="content-area">
 			<div id="main-menu"> 				
 				<div class="scroll-area" id="main-menu-scroll-area">
@@ -75,7 +66,6 @@
 					</div>
 				</div>
 			</div>
-			
 			<div class="app-section" id="set-up-new">
 				<div class="menu-screen" id="set-up-new-start">
 					<div class="setup-choice" onclick="startAssistant('createCard');">
@@ -90,7 +80,6 @@
 						<p>Turn on and configure the product for the first time.</p>
 					</div>
 				</div>
-				
 				<div class="menu-screen side-by-side" id="select-card">
 					<div class="banner-image" style="background-image: url(images/sd-card.jpg);"></div>
 					<div class="scroll-area">
@@ -105,7 +94,6 @@
 						</div>
 					</div>
 				</div>
-				
 				<div class="menu-screen" id="writing-card">
 					<div class="scroll-area progress">
 						<div class="burn-icon">
@@ -118,7 +106,6 @@
 						<p>About 3 minutes remaining</p>
 					</div>
 				</div>
-				
 				<div class="menu-screen side-by-side" id="sd-to-product">
 					<div class="banner-image" style="background-image: url(images/mood-images/sd-mood.jpg);"></div>
 					<div class="scroll-area">
@@ -132,7 +119,6 @@
 						</div>
 					</div>
 				</div>
-				
 				<div class="menu-screen side-by-side" id="connect-power">
 					<div class="banner-image" style="background-image: url(images/mood-images/create-mood-5.jpg);"></div>
 					<div class="scroll-area">
@@ -146,7 +132,6 @@
 						</div>
 					</div>
 				</div>
-				
 				<div class="menu-screen side-by-side" id="wait-for-discovery">
 					<div class="banner-image" style="background-image: url(images/mood-images/create-mood-5.jpg);"></div>
 					<div class="scroll-area">
@@ -157,8 +142,6 @@
 								<p id="ethernet-instructions" class="hidden">Connect the product to your network with an Ethernet cable. Make sure this computer is on the same network. <a href="#" onclick="toggle('#wifi-instructions','#ethernet-instructions');">Set up wirelessly instead.</a></p>
 								<p>Once connected and the product appears below, select it to continue.</p>
 							</div>
-							
-						
 							<div class="menu-group">
 									<div class="collection found-products">
 										<div class="collection-item no-products">
@@ -190,5 +173,17 @@
 				Next Step
 			</div>
 		</div>
+		<script>
+			if (typeof module === 'object') {
+				window.module = module; module = undefined;
+			}
+		</script>
+		<script src="scripts/jquery-1.10.2.min.js"></script>
+		<script>
+			if (window.module) {
+				module = window.module;
+			}
+		</script>
+		<script src="scripts/ui.js"></script>
 	</body>
 </html>
