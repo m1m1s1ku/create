@@ -423,7 +423,12 @@ function connectSSH() {
 		} }).then(function(result) {
 			console.log('STDOUT: ' + result.stdout)
 			if(result.stderr) {
-				sshInstance?.execCommand('killall arecord');
+				sshInstance?.execCommand('killall arecord').then(() => {
+					sshInstance?.dispose();
+					clientChannel?.close();
+					clientChannel = null;
+					sshInstance = null;
+				});
 			}
 			console.log('STDERR: ' + result.stderr)
 		});
