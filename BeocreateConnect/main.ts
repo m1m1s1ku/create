@@ -299,6 +299,7 @@ function discoveryEvent(event: string, service: { fullname: string | number; add
 	if (event == "changed") {
 		if (products[service.fullname]) {
 			setProductInfo(service);
+			console.warn(products);
 			win.webContents.send('updateProduct', products[service.fullname]);
 		}
 	}
@@ -333,6 +334,8 @@ function refreshProducts(services?: any[]) {
 			}
 		}
 	}
+
+	console.warn(products);
 }
 
 function setProductInfo(service: { fullname: any; addresses: any; txt: any; host?: any; port?: any; name?: any; manual?: any; }) {
@@ -376,8 +379,23 @@ function setProductInfo(service: { fullname: any; addresses: any; txt: any; host
 		productImage: productImage,
 		systemID: systemID,
 		systemStatus: systemStatus,
+		boundTo: undefined,
 		manual: false,
 	};
+
+	if(currentBinding && currentBinding[service.name]) {
+		product.boundTo = currentBinding[service.name];
+		const inverseKey = Object.keys(products).find(key => {
+			const object = products[key];
+			if(object.name === currentBinding[service.name]) {
+				return key;
+			}
+		});
+		if(inverseKey) {
+			products[inverseKey].boundTo = product.name;
+		}
+	}
+
 	if (service.manual) {
 		product.manual = true;
 	} 
@@ -396,6 +414,7 @@ ipcMain.on("refreshProducts", (event, arg) => {
 
 let clientChannel = null;
 let sshInstance = null;
+let currentBinding = null;
 function connectSSH() {
 	console.warn('internal bind');
 	if(sshInstance) {
@@ -408,6 +427,12 @@ function connectSSH() {
 	}
 
 	sshInstance = new NodeSSH()
+
+	currentBinding = {
+		AUXBerry: 'HiFiBerry'
+	};
+
+	refreshProducts();
 
 	sshInstance.connect({
 		host: 'auxberry.local',
@@ -461,7 +486,7 @@ async function discoverProductAtAddress(address: string): Promise<void> {
 				}
 			}
 		}).catch(err => {
-			console.error("Manual product discovery unsuccessful", err)
+			console.error("Manual product discovery unsuccessful")
 		});
 	} else {
 		if (manuallyDiscoveredProduct != null) {
