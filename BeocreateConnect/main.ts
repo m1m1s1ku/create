@@ -301,7 +301,6 @@ function discoveryEvent(event: string, service: { fullname: string | number; add
 	if (event == "changed") {
 		if (products[service.fullname]) {
 			setProductInfo(service);
-			console.warn(products);
 			win.webContents.send('updateProduct', products[service.fullname]);
 		}
 	}
@@ -336,8 +335,6 @@ function refreshProducts(services?: any[]) {
 			}
 		}
 	}
-
-	console.warn(products);
 }
 
 function setProductInfo(service: { fullname: any; addresses: any; txt: any; host?: any; port?: any; name?: any; manual?: any; }) {
@@ -385,8 +382,10 @@ function setProductInfo(service: { fullname: any; addresses: any; txt: any; host
 		manual: false,
 	};
 
-	if(currentRouting && currentRouting[service.name]) {
-		product.boundTo = currentRouting[service.name];
+	if(currentRouting && currentRouting.from === service.name) {
+		product.boundTo = currentRouting.to;
+	} else if(currentRouting && currentRouting.to === service.name) {
+		product.boundTo = currentRouting.from;
 	}
 
 	if (service.manual) {
@@ -409,9 +408,7 @@ let clientChannel = null;
 let sshInstance = null;
 let currentRouting = null;
 function connectSSH() {
-	console.warn('internal bind');
 	if(sshInstance) {
-		console.warn('dispose current ssh handle');
 		sshInstance.dispose();
 		clientChannel.close();
 		clientChannel = null;
@@ -422,24 +419,55 @@ function connectSSH() {
 	sshInstance = new NodeSSH()
 
 	currentRouting = {
-		AUXBerry: 'HiFiBerry',
-		HiFiBerry: 'AUXBerry',
+		from: 'AUXBerry',
+		to: 'HiFiBerry',
 	};
 
-	refreshProducts();
+	const productKeys = Object.keys(products);
+
+	const source = productKeys.find(key => {
+		const product = products[key];
+		if(product.name === currentRouting.from) {
+			return key;
+		}
+
+		return null;
+	});
+
+	const destination = productKeys.find(key => {
+		const product = products[key];
+		if(product.name === currentRouting.to) {
+			return key;
+		}
+
+		return null;
+	});
+
+	console.warn('source', products[source], 'dest', products[destination]);
+
+	const bitrate = "-f S24_LE";
+	const codec = "-t wav";
+	const samplingRate = "-r 60000";
+	const channels = "-c2"
+
+	const audioParams = `${bitrate} ${codec} ${samplingRate} ${channels}`;
 
 	sshInstance.connect({
-		host: 'auxberry.local',
+		host: products[source].addresses[0],
 		username: 'root',
 		password: 'hifiberry'
 	}).then(() => {
 		// @todo : Add settings to create this command dynamically.
-		sshInstance.execCommand('arecord -D plughw:0,0 -f S24_LE -t wav -r 60000 -c2 | ssh -C root@192.168.1.18 -i rcaberry aplay -f S24_LE -t wav -r 60000 -c2', { pty: true, onChannel: (client) => {
-			clientChannel = client;
-			setTimeout(() => {
-				refreshProducts();
-			}, 500);
-		} }).then(function(result) {
+		sshInstance.execCommand(`arecord -D plughw:0,0 ${audioParams} | ssh -C root@${products[destination].addresses[0]} -i rcaberry aplay ${audioParams}`, {
+			// @note : hack, without this, channel.close don't work.
+			pty: true,
+			onChannel: (client) => {
+				clientChannel = client;
+				setTimeout(() => {
+					refreshProducts();
+				}, 500);
+			} 
+		}).then(function(result) {
 			// @note : enforce killall on error (enable switch aspect of the button)
 			if(result.stderr) {
 				sshInstance?.execCommand('killall arecord').then(() => {
