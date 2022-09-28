@@ -471,10 +471,12 @@ function connectSSH() {
 			if(result.stderr) {
 				sshInstance?.execCommand('killall arecord').then(() => {
 					cleanup();
-					setTimeout(() => {
-						refreshProducts();
-					}, 500);
+					refreshProducts();
 				});
+			} else {
+				setTimeout(() => {
+					refreshProducts();
+				}, 500);
 			}
 			console.log('STDOUT: ' + result.stdout)
 			console.log('STDERR: ' + result.stderr)
