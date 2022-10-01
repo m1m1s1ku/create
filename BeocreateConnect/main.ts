@@ -550,18 +550,19 @@ async function connectSSH() {
 		console.warn('Start binding to ', destination?.name, 'from', source?.name);
 		await sshInstance.exec(linkCommand, [], {
 			onStdout(chunk) {
-				console.log('out:', chunk.toString('utf8'))
+				console.log('out:', chunk.toString('utf8'));
+				startDiscovery(); 
+				startManualDiscovery();
 			},
 			onStderr(chunk) {
-				console.log('err:', chunk.toString('utf8'))
+				console.log('err:', chunk.toString('utf8'));
+				startDiscovery(); 
+				startManualDiscovery();
 			},
 			onChannel: (client) => {
 				clientChannel = client;
-				refreshProducts();
 			}
 		});
-
-		refreshProducts();
 	}
 }
 
