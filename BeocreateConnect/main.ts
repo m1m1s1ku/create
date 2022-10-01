@@ -460,6 +460,7 @@ async function connectSSH() {
 
 	// @todo : Add settings to create this command dynamically.
 	const linkCommand = `arecord -D plughw:0,0 ${audioParams} | ssh -C root@${destination.addresses[0]} -i rcaberry aplay ${audioParams}`;
+	const killCommand = 'killall arecord';
 
 	const result = await sshInstance.execCommand(linkCommand, {
 		pty: true,
@@ -471,7 +472,7 @@ async function connectSSH() {
 
 	// @note : enforce killall on error (enable switch aspect of the button)
 	if(result.stderr) {
-		sshInstance?.execCommand('killall arecord').then(() => {
+		sshInstance?.execCommand(killCommand).then(() => {
 			cleanup();
 			refreshProducts();
 		});
