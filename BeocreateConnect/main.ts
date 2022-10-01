@@ -151,6 +151,8 @@ export async function isBindingLocked(client: NodeSSH) {
 		return true;
 	}
 
+	currentRouting = null;
+
 	return false;
 }
 
