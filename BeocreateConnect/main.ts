@@ -146,12 +146,8 @@ export async function isBindingLocked(client: NodeSSH) {
 	const isLocked = await client.execCommand(isLockedCommand);
 
 	if(isLocked.stdout) {
-		currentRouting = defaultRouting;
-
 		return true;
 	}
-
-	currentRouting = null;
 
 	return false;
 }
