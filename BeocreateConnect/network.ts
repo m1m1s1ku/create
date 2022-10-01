@@ -4,14 +4,14 @@ import { BrowserWindow } from "electron";
 import { Browser, tcp } from "dnssd2";
 import { getCurrentRouting } from "./main";
 
-export let manuallyDiscoveredProduct: Service | null = null;
+let manuallyDiscoveredProduct: Service | null = null;
 let manualDiscoveryInterval: NodeJS.Timer | null = null;
 let manualDiscoveryAddress = "10.0.0.1";
 
 let bonjourProductCount = 0;
 
 // FIND BEOCREATE SYSTEMS
-export let browser: {
+let browser: {
 	on: (eventName: string, callback: (service: Service) => void) => void;
 	start: () => void;
 	stop: () => void;

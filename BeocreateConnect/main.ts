@@ -55,6 +55,10 @@ if (process.platform == "darwin" && win) {
 	)
 }
 
+ipcMain.on("bindAuxToAMP", (event, arg) => {
+	bindBerries();
+});
+
 ipcMain.on("getAllProducts", (event, arg) => {
 	const products = getProducts();
 	win?.webContents.send('discoveredProducts', products);
@@ -68,6 +72,11 @@ function onRefreshProducts() {
 ipcMain.on("refreshProducts", onRefreshProducts);
 
 // @todo : Add settings to change this easily
+const defaultRouting = {
+	from: 'AuxBerry',
+	to: 'HiFiBerry',
+};
+
 const bitrate = "-f S24_LE";
 const codec = "-t wav";
 const samplingRate = "-r 60000";
@@ -80,15 +89,11 @@ const lockFileName = 'connected.lock';
 
 let clientChannel: ClientChannel | null = null;
 let sshInstance: NodeSSH | null = null;
+
 let currentRouting: {
 	from: string;
 	to: string;
 } | null = null;
-
-const defaultRouting = {
-	from: 'AuxBerry',
-	to: 'HiFiBerry',
-};
 
 export async function getCurrentRouting() {
 	if(!currentRouting) {
@@ -199,7 +204,3 @@ export async function bindBerries() {
 		});
 	}
 }
-
-ipcMain.on("bindAuxToAMP", (event, arg) => {
-	bindBerries();
-});
