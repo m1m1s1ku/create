@@ -23,8 +23,14 @@ import { app, BrowserWindow, ipcMain, nativeTheme, systemPreferences } from 'ele
 
 import { NodeSSH } from 'node-ssh';
 import { ClientChannel } from 'ssh2';
+
 import { createWindow } from './utils';
-import { findProduct, getProducts, startDiscovery, startManualDiscovery } from './network';
+import { 
+	findProduct, 
+	getProducts, 
+	startDiscovery, 
+	startManualDiscovery 
+} from './network';
 
 let win: BrowserWindow | null = null;
   

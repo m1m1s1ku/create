@@ -18,11 +18,12 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-import { Product, Service } from "./beocreate-connect";
 import { fetch } from 'cross-fetch';
 import { BrowserWindow } from "electron";
 import { Browser, tcp } from "dnssd2";
+
 import { getCurrentRouting } from "./main";
+import { Product, Service } from "./beocreate-connect";
 
 let manuallyDiscoveredProduct: Service | null = null;
 let manualDiscoveryInterval: NodeJS.Timer | null = null;

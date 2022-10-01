@@ -28,7 +28,13 @@ import {
     closeSSHClient,
 } from "./main";
 import { MenuItemRebrand } from "./beocreate-connect";
-import { refreshProducts, startDiscovery, startManualDiscovery, stopDiscovery, stopManualDiscovery } from "./network";
+import { 
+  refreshProducts, 
+  startDiscovery,
+  startManualDiscovery, 
+  stopDiscovery, 
+  stopManualDiscovery
+} from "./network";
 
 let ipCheckInterval: NodeJS.Timer | null = null;
 function startCheckingIPAddress(win: BrowserWindow | null): void {
