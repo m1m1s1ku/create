@@ -524,26 +524,35 @@ async function connectSSH() {
 	}
 
 	// @todo : Add settings to create this command dynamically.
-	const linkCommand = `arecord -D plughw:0,0 ${audioParams} | ssh -C root@${destinationLocalIP} -i rcaberry aplay ${audioParams}`;
-	const killCommand = 'killall arecord | rm connected.lock';
-	const lockCommand = `touch connected.lock | echo ${destination?.name} > connected.lock`;
+	const username = 'root';
+	const password = 'hifiberry';
+	const sshKeyFileName = 'rcaberry';
+	const lockFileName = 'connected.lock';
+
+	const linkCommand = `arecord -D plughw:0,0 ${audioParams} | ssh -C ${username}@${destinationLocalIP} -i ${sshKeyFileName} aplay ${audioParams}`;
+	const killCommand = `killall arecord | rm ${lockFileName}`;
+	const lockCommand = `touch ${lockFileName} | echo ${destination?.name} > ${lockFileName}`;
 
 	await sshInstance.connect({
 		host: sourceLocalIP,
-		username: 'root',
-		password: 'hifiberry'
+		username,
+		password
 	});
 
-	const isConnected = await sshInstance.execCommand(`cat connected.lock`);
+	const isConnected = await sshInstance.execCommand(`cat ${lockFileName}`);
 	if(isConnected.stdout) {
 		console.warn('Already connected to', isConnected.stdout, 'killing');
 		await sshInstance.execCommand(killCommand);
 		cleanup();
 	} else {
 		await sshInstance.execCommand(lockCommand);
-
-		const result = await sshInstance.execCommand(linkCommand, {
-			// pty: true,
+		await sshInstance.exec(linkCommand, [], {
+			onStdout(chunk) {
+				console.log('stdoutChunk', chunk.toString('utf8'))
+			},
+			onStderr(chunk) {
+				console.log('stderrChunk', chunk.toString('utf8'))
+			},
 			onChannel: (client) => {
 				clientChannel = client;
 				refreshProducts();
@@ -551,11 +560,7 @@ async function connectSSH() {
 		});
 
 		refreshProducts();
-		
-		console.log('STDOUT: ' + result.stdout);
-		console.log('STDERR: ' + result.stderr);
 	}
-
 }
 
 ipcMain.on("bindAuxToAMP", (event, arg) => {
