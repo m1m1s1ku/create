@@ -155,12 +155,10 @@ export async function isBindingLocked(client: NodeSSH) {
 }
 
 export async function bindBerries() {
-	currentRouting = defaultRouting;
-
 	const audioParams = `${bitrate} ${codec} ${samplingRate} ${channels}`;
 
-	const source = findProduct(currentRouting.from);
-	const destination = findProduct(currentRouting.to);
+	const source = findProduct(defaultRouting.from);
+	const destination = findProduct(defaultRouting.to);
 
 	const sourceLocalIP = source?.addresses[0] ?? null;
 	
