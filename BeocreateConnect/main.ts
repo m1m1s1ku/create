@@ -21,7 +21,6 @@ SOFTWARE.
 // BEOCREATE CONNECT
 import { app, BrowserWindow, ipcMain, nativeTheme, systemPreferences } from 'electron';
 
-
 import { NodeSSH } from 'node-ssh';
 import { ClientChannel } from 'ssh2';
 import { createWindow } from './utils';
@@ -81,10 +80,37 @@ const lockFileName = 'connected.lock';
 
 let clientChannel: ClientChannel | null = null;
 let sshInstance: NodeSSH | null = null;
-export let currentRouting: {
+let currentRouting: {
 	from: string;
 	to: string;
 } | null = null;
+
+const defaultRouting = {
+	from: 'AuxBerry',
+	to: 'HiFiBerry',
+};
+
+export async function getCurrentRouting() {
+	if(!currentRouting) {
+		currentRouting = defaultRouting;
+		
+		const source = findProduct(currentRouting.from);
+		const sourceLocalIP = source?.addresses[0] ?? null;
+		
+		if(!sourceLocalIP) {
+			console.error('Can\'t find source HifiBerry');
+			return;
+		}
+
+		const client = await safeSSHClient(sourceLocalIP, username, password);
+		const isLocked = await isBindingLocked(client);
+		if(!isLocked) {
+			currentRouting = null;
+		}
+	}
+
+	return currentRouting;
+}
 
 export async function closeSSHClient() {
 	if(!sshInstance) { return; }
@@ -115,10 +141,7 @@ export async function isBindingLocked(client: NodeSSH) {
 	const isLocked = await client.execCommand(isLockedCommand);
 
 	if(isLocked.stdout) {
-		currentRouting = {
-			from: 'AuxBerry',
-			to: 'HiFiBerry',
-		};
+		currentRouting = defaultRouting;
 
 		return true;
 	}
@@ -127,10 +150,7 @@ export async function isBindingLocked(client: NodeSSH) {
 }
 
 export async function bindBerries() {
-	currentRouting = {
-		from: 'AuxBerry',
-		to: 'HiFiBerry',
-	};
+	currentRouting = defaultRouting;
 
 	const audioParams = `${bitrate} ${codec} ${samplingRate} ${channels}`;
 

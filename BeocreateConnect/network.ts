@@ -2,7 +2,7 @@ import { Product, Service } from "./beocreate-connect";
 import { fetch } from 'cross-fetch';
 import { BrowserWindow } from "electron";
 import { Browser, tcp } from "dnssd2";
-import { currentRouting } from "./main";
+import { getCurrentRouting } from "./main";
 
 export let manuallyDiscoveredProduct: Service | null = null;
 let manualDiscoveryInterval: NodeJS.Timer | null = null;
@@ -72,7 +72,7 @@ export function findProduct(name: string) {
 	return productKey && products[productKey] ? products[productKey] : null;
 }
 
-export function refreshProducts(win: BrowserWindow, services?: Service[] | null): void {
+export async function refreshProducts(win: BrowserWindow, services?: Service[] | null): Promise<void> {
 	if (services == null) {
 		services = [];
 		if (browser) {
@@ -88,7 +88,7 @@ export function refreshProducts(win: BrowserWindow, services?: Service[] | null)
 		// Find out which services have been added.
 		for (let s = 0; s < services.length; s++) {
 			if (!products[services[s].fullname]) {
-				setProductInfo(services[s]); // Adds product.
+				await setProductInfo(services[s]); // Adds product.
 				//console.log(products[services[s].fullname].addresses);
 				win?.webContents.send('addProduct', products[services[s].fullname]);
 			}
@@ -108,7 +108,7 @@ export function refreshProducts(win: BrowserWindow, services?: Service[] | null)
 	}
 }
 
-export function setProductInfo(service: Service): Product {
+export async function setProductInfo(service: Service): Promise<Product> {
 	let modelID = null;
 	let modelName = null;
 	let systemID = null;
@@ -158,11 +158,13 @@ export function setProductInfo(service: Service): Product {
 		txt: {}
 	};
 
+    const routing = await getCurrentRouting();
+
 	// @note : auto-magic bind (jack button => reflect by bolt on UI)
-	if(currentRouting && currentRouting.from === service.name) {
-		product.boundTo = currentRouting.to;
-	} else if(currentRouting && currentRouting.to === service.name) {
-		product.boundTo = currentRouting.from;
+	if(routing && routing.from === service.name) {
+		product.boundTo = routing.to;
+	} else if(routing && routing.to === service.name) {
+		product.boundTo = routing.from;
 	}
 
 	if (service.manual) {
@@ -173,7 +175,7 @@ export function setProductInfo(service: Service): Product {
 }
 
 
-function discoveryEvent(event: string, service: Service, win: BrowserWindow | null): void {
+async function discoveryEvent(event: string, service: Service, win: BrowserWindow | null): Promise<void> {
 	if (true) {
 		console.log(event, new Date(Date.now()).toLocaleString(), service.fullname, service.addresses, service.txt);
 	}
@@ -182,7 +184,7 @@ function discoveryEvent(event: string, service: Service, win: BrowserWindow | n
 		const list = browser?.list() ?? [];
 
 		if (list && win) {
-			refreshProducts(win, list);
+			await refreshProducts(win, list);
 		}
 
 		bonjourProductCount = list ? list.length : 0;
@@ -190,7 +192,7 @@ function discoveryEvent(event: string, service: Service, win: BrowserWindow | n
 	
 	if (event == "changed") {
 		if (products[service.fullname]) {
-			setProductInfo(service);
+			await setProductInfo(service);
 			win?.webContents.send('updateProduct', products[service.fullname]);
 		}
 	}
@@ -213,12 +215,12 @@ async function performNetworkDiscovery(address: string, win: BrowserWindow) {
 
 			if (!manuallyDiscoveredProduct) {
 				manuallyDiscoveredProduct = service;
-				refreshProducts(win!);
+				await refreshProducts(win!);
 			}
 		} else {
 			if (manuallyDiscoveredProduct != null) {
 				manuallyDiscoveredProduct = null;
-				refreshProducts(win!);
+				await refreshProducts(win!);
 			}
 		}
 	} catch (err) {
@@ -235,7 +237,7 @@ async function discoverProductAtAddress(address: string, win: BrowserWindow | nu
 	if(manuallyDiscoveredProduct === null) { return; }
 
 	manuallyDiscoveredProduct = null;
-	refreshProducts(win!);
+	await refreshProducts(win!);
 }
 
 export function startManualDiscovery(win: BrowserWindow | null): void {
