@@ -2,16 +2,21 @@ import { app, BrowserWindow, Menu, MenuItem, nativeTheme, shell } from "electron
 import windowStateKeeper from "electron-window-state";
 import { networkInterfaces } from "os";
 
-import { browser, connectSSH, currentRouting, manuallyDiscoveredProduct, products, sshInstance, startDiscovery, startManualDiscovery, stopDiscovery, stopManualDiscovery } from "./main";
+import { 
+    connectSSH,
+    currentRouting,
+    sshInstance, 
+} from "./main";
 import { MenuItemRebrand, Product, Service } from "./beocreate-connect";
+import { browser, manuallyDiscoveredProduct, products, startDiscovery, startManualDiscovery, stopDiscovery, stopManualDiscovery } from "./network";
 
 let ipCheckInterval: NodeJS.Timer | null = null;
-function startCheckingIPAddress(): void {
+function startCheckingIPAddress(win: BrowserWindow | null): void {
 	hasIPChanged();
 	ipCheckInterval = setInterval(function() {
         if (hasIPChanged()) {
-            startDiscovery();
-            startManualDiscovery();
+            startDiscovery(win);
+            startManualDiscovery(win);
         }
 	}, 10000);
 }
@@ -101,9 +106,9 @@ export function createWindow(): BrowserWindow {
 		setTimeout(function() {
 			win?.show();
 			setTimeout(function() {
-				startDiscovery();
-				startCheckingIPAddress();
-				startManualDiscovery();
+				startDiscovery(win);
+				startCheckingIPAddress(win);
+				startManualDiscovery(win);
 			}, 500);
 		}, 100);
     });
@@ -155,8 +160,8 @@ export default function defineMenu(win: BrowserWindow) {
             { 
                 label: 'Discover Products Again',
                 click () { 
-                    startDiscovery(); 
-                    startManualDiscovery(); 
+                    startDiscovery(win); 
+                    startManualDiscovery(win); 
                 }
             },
             { 

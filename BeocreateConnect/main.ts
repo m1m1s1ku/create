@@ -21,15 +21,12 @@ SOFTWARE.
 // BEOCREATE CONNECT
 import { app, BrowserWindow, ipcMain, nativeTheme, systemPreferences } from 'electron';
 
-import { Browser, tcp } from "dnssd2";
 
 import { NodeSSH } from 'node-ssh';
-import { fetch } from 'cross-fetch';
 import { ClientChannel } from 'ssh2';
-import { createWindow, refreshProducts, setProductInfo } from './utils';
-import { Service } from './beocreate-connect';
+import { createWindow } from './utils';
+import { products, startDiscovery, startManualDiscovery } from './network';
 
-let debug = false;
 let win: BrowserWindow | null = null;
   
 app.on('ready', () => {
@@ -58,84 +55,14 @@ if (process.platform == "darwin" && win) {
 	  }
 	)
 }
-  
-// FIND BEOCREATE SYSTEMS
-export let browser: {
-	on: (eventName: string, callback: (service: Service) => void) => void;
-	start: () => void;
-	stop: () => void;
-	list: () => Service[];
-} | null = null;
-let startedOnce = false;
-
-export function startDiscovery(once?: boolean) { // Start or restart discovery.
-	if (!once || !startedOnce) {
-	  	if (!browser) {
-		  	browser = new Browser(tcp('beocreate'), {maintain: true});
-	
-	  		browser?.on('serviceUp', service => discoveryEvent("up", service));
-	  		browser?.on('serviceDown', service => discoveryEvent("down", service));
-	  		browser?.on('serviceChanged', service => discoveryEvent("changed", service));
-	  		browser?.on('error', error => console.log("dnssd error: "+error));
-	  	} else {
-	  		stopDiscovery();
-	  	}
-
-	  	console.log("Starting discovery.");
-		browser?.start();
-		bonjourProductCount = 0;
-		startedOnce = true;
-  }
-}
-
-export function stopDiscovery() {
-	if(!browser) { return; }
-
-	browser.stop();
-	products = {};
-	bonjourProductCount = 0;
-
-	console.log("Stopping discovery.");
-
-	if (win) {
-		win.webContents.send('discoveredProducts', products);
-	}
-}
-
-export let products: Record<string, Service> = {};
-let bonjourProductCount = 0;
-
-function discoveryEvent(event: string, service: Service): void {
-	if (debug) {
-		console.log(event, new Date(Date.now()).toLocaleString(), service.fullname, service.addresses, service.txt);
-	}
-	
-	if (event == "up" || event == "down") {
-		const list = browser?.list() ?? [];
-
-		if (list) {
-			refreshProducts(win!, list);
-		}
-
-		bonjourProductCount = list ? list.length : 0;
-	}
-	
-	if (event == "changed") {
-		if (products[service.fullname]) {
-			setProductInfo(service);
-			win?.webContents.send('updateProduct', products[service.fullname]);
-		}
-	}
-	
-}
 
 ipcMain.on("getAllProducts", (event, arg) => {
 	win?.webContents.send('discoveredProducts', products);
 });
 
 function onRefreshProducts() {
-	startDiscovery(); 
-	startManualDiscovery();
+	startDiscovery(win); 
+	startManualDiscovery(win);
 }
 
 ipcMain.on("refreshProducts", onRefreshProducts);
@@ -250,63 +177,3 @@ export async function connectSSH() {
 ipcMain.on("bindAuxToAMP", (event, arg) => {
 	connectSSH();
 });
-
-export let manuallyDiscoveredProduct: Service | null = null;
-let manualDiscoveryInterval: NodeJS.Timer | null = null;
-let manualDiscoveryAddress = "10.0.0.1";
-
-async function discoverProductAtAddress(address: string): Promise<void> {
-	if (bonjourProductCount == 0) {
-		try {
-			const discovery = await fetch('http://'+address+'/product-information/discovery');
-			if(discovery.ok) {
-				const body = await discovery.json();
-				const service = {
-					name: body.name, 
-					fullname: body.name+"._"+body.serviceType+"._tcp.local.", 
-					port: body.advertisePort, 
-					addresses: [address], 
-					host: address, 
-					txt: body.txtRecord, 
-					manual: true
-				};
-	
-				if (!manuallyDiscoveredProduct) {
-					manuallyDiscoveredProduct = service;
-					refreshProducts(win!);
-				}
-			} else {
-				if (manuallyDiscoveredProduct != null) {
-					manuallyDiscoveredProduct = null;
-					refreshProducts(win!);
-				}
-			}
-		} catch (err) {
-			console.error("Manual product discovery unsuccessful", err instanceof Error ? err.message : err);
-		}
-	} else {
-		if (manuallyDiscoveredProduct != null) {
-			manuallyDiscoveredProduct = null;
-			refreshProducts(win!);
-		}
-	}
-}
-
-export function startManualDiscovery(): void {
-	manuallyDiscoveredProduct = null;
-
-	stopManualDiscovery();
-
-	discoverProductAtAddress(manualDiscoveryAddress);
-	manualDiscoveryInterval = setInterval(function() {
-		discoverProductAtAddress(manualDiscoveryAddress);
-	}, 10000);
-}
-
-export function stopManualDiscovery(): void {
-	if(!manualDiscoveryInterval) {
-		return;
-	}
-
-	clearInterval(manualDiscoveryInterval);
-}
