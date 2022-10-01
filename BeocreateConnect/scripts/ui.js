@@ -18,11 +18,15 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 */
+/* eslint-disable no-global-assign */
+/* eslint-disable no-undef */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
 // BEOCREATE CONNECT
 const inElectron = true;
 let debug = true;
 
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const { ipcRenderer, shell, remote } = require('electron');
 const ipc = ipcRenderer;
 
@@ -103,11 +107,11 @@ if (ipc) {
 			document.body.classList.replace('full-screen', 'windowed');
 		}
 	});
-	ipc.on('colourSchemeIsDark', (event, message) => {
+	ipc.on('colourSchemeIsDark', (_event, message) => {
 		setAppearance(message);
 		sendToProductUI({header: "hasDarkAppearance", content: darkAppearance});
 	});
-	ipc.on('styleForWindows', (event, message) => {
+	ipc.on('styleForWindows', (_event, message) => {
 		if (message == true) {
 			windows = true;
 			document.body.classList.replace('mac', 'windows');
@@ -117,7 +121,7 @@ if (ipc) {
 		}
 	});
 	
-	ipc.on('reloadProductView', (event) => {
+	ipc.on('reloadProductView', () => {
 		const productView = document.getElementById('product-view');
 		productView.setAttribute('src', productView.getAttribute('src'));
 	});
@@ -147,9 +151,10 @@ function showWindowTitle(show) {
 // TITLE BAR
 
 function titleBarMode(mode) {
+	const titleBar = document.querySelector('#title-bar');
+
 	switch (mode) {
 		case "normal":
-			const titleBar = document.querySelector('#title-bar');
 			titleBar.classList.replace('dark', 'visible');
 			break;
 	}
@@ -173,14 +178,14 @@ function titleBarMode(mode) {
             restoreButton = document.getElementById('restore-button'),
             closeButton = document.getElementById('close-button');
 
-        minButton.addEventListener("click", event => {
+        minButton.addEventListener("click", () => {
             if (remote) {
 				window = remote.getCurrentWindow();
 				window.minimize();
 			}
         });
 
-        maxButton.addEventListener("click", event => {
+        maxButton.addEventListener("click", () => {
             if (remote) {
 				window = remote.getCurrentWindow();
 				window.maximize();
@@ -188,7 +193,7 @@ function titleBarMode(mode) {
 			}
         });
 
-        restoreButton.addEventListener("click", event => {
+        restoreButton.addEventListener("click", () => {
             if (remote) {
 				window = remote.getCurrentWindow();
 				window.unmaximize();
@@ -196,29 +201,23 @@ function titleBarMode(mode) {
 			}
         });
 
-        // Toggle maximise/restore buttons when maximisation/unmaximisation
-        // occurs by means other than button clicks e.g. double-clicking
-        // the title bar:
         toggleMaxRestoreButtons();
-		// window.addEventListener('maximize')
-        // window.on('maximize', toggleMaxRestoreButtons);
-        // window.on('unmaximize', toggleMaxRestoreButtons);
 
-        closeButton.addEventListener("click", event => {
+        closeButton.addEventListener("click", () => {
             window = remote.getCurrentWindow();
             window.close();
         });
 
         function toggleMaxRestoreButtons() {
 			if (remote && windows) {
-	            window = remote.getCurrentWindow();
-	            if (window.isMaximized()) {
-	                maxButton.style.display = "none";
-	                restoreButton.style.display = "flex";
-	            } else {
-	                restoreButton.style.display = "none";
-	                maxButton.style.display = "flex";
-	            }
+				window = remote.getCurrentWindow();
+				if (window.isMaximized()) {
+					maxButton.style.display = "none";
+					restoreButton.style.display = "flex";
+				} else {
+					restoreButton.style.display = "none";
+					maxButton.style.display = "flex";
+				}
 			}
         }
     }
@@ -298,7 +297,7 @@ function productNotification(title, description) {
 
 document.addEventListener("scroll", function(event) {
 	if (event.target.id == "main-menu-scroll-area") {
-		scrollPos = document.querySelector('#main-menu-scroll-area').scrollTop;
+		const scrollPos = document.querySelector('#main-menu-scroll-area').scrollTop;
 		document.querySelector('#main-menu .colour-background .element-2').style.transform = "translateY("+scrollPos*-0.5+"px)";
 		document.querySelector('#main-menu .colour-background .element-3').style.transform = "translateY("+scrollPos*-0.2+"px)";
 	}
@@ -397,8 +396,7 @@ function toggle(inElement, outElement) {
 // Receives discovered products from the app.
 let products = {};
 
-selectedProduct = null;
-
+let selectedProduct;
 let connectOnDiscovery = {identifier: null, systemName: null};
 let refreshing = false;
 
@@ -407,24 +405,24 @@ if (ipc) {
 		ipc.send("getAllProducts");
 	}, 1000);
 	
-	ipc.on('discoveredProducts', (event, message) => {
+	ipc.on('discoveredProducts', (_event, message) => {
 		products = message;
 		updateProductLists();
 	});
 	
-	ipc.on('addProduct', (event, product) => {
+	ipc.on('addProduct', (_event, product) => {
 		products[product.fullname] = product;
 		addProduct(product);
 		document.querySelector('.no-products').classList.add('hidden');
 	});
 	
-	ipc.on('updateProduct', (event, product) => {
+	ipc.on('updateProduct', (_event, product) => {
 		products[product.fullname] = product;
 		updateProduct(product);
 	});
 	
-	ipc.on('removeProduct', (event, product) => {
-		fullname = product.fullname;
+	ipc.on('removeProduct', (_event, product) => {
+		const fullname = product.fullname;
 		document.querySelector(".found-products .discovered[data-product-fullname=\""+fullname+"\"]").classList.add('animated-hide');
 		setTimeout(function() {
 			const productNode = document.querySelector(".found-products .discovered[data-product-fullname=\""+fullname+"\"]");
@@ -470,7 +468,7 @@ function updateProductLists() {
 		discovered.parentElement.removeChild(discovered);
 	}
 
-	for (fullname in products) {
+	for (const fullname in products) {
 		addProduct(products[fullname]);
 	}
 
@@ -490,7 +488,7 @@ function updateProductLists() {
 }
 
 function addProduct(product) {
-	info = getProductInfo(product);
+	const info = getProductInfo(product);
 	console.log(connectOnDiscovery.identifier, product.systemID);
 	if (connectOnDiscovery.identifier != null) {
 		// Check if this product is the one that should be automatically reconnected.
@@ -534,7 +532,7 @@ function addProduct(product) {
 }
 
 function updateProduct(product) {
-	info = getProductInfo(product);
+	const info = getProductInfo(product);
 	const productNode = document.querySelector('.product-item[data-product-fullname="'+product.fullname+'"]');
 	productNode.classList.remove('normal', 'yellow', 'red', 'legacy', 'configure');
 	productNode.classList.add(...info.classes);
@@ -543,15 +541,24 @@ function updateProduct(product) {
 }
 
 function getProductInfo(product) {
-	image = "images/product-images/beocreate.png";
-	model = "Beocreate";
-	classes = [];
+	let image = "images/product-images/beocreate.png";
+	let model = "Beocreate";
+	const classes = [];
 	if (product.legacyProduct) {
 		classes.push("legacy", "configure");
 	} else {
-		if (product.productImage != null) image = "http://"+product.addresses[0]+":"+product.port+product.productImage;
-		if (product.modelName != null) model = product.modelName;
-		if (model.toLowerCase() == "beocreate 4-channel amplifier") model = "Beocreate";
+		if (product.productImage != null) {
+			image = "http://"+product.addresses[0]+":"+product.port+product.productImage;
+		}
+
+		if (product.modelName != null) {
+			model = product.modelName;
+		}
+
+		if (model.toLowerCase() == "beocreate 4-channel amplifier") {
+			model = "Beocreate";
+		}
+
 		classes.push("configure");
 		if (product.systemStatus) {
 			switch (product.systemStatus) {
@@ -576,9 +583,9 @@ function configureProduct(fullname, fromDiscovery) {
 		setWindowTitle(products[fullname].name);
 		showMenuButton(true);
 		connectOnDiscovery = {identifier: null, productName: null};
-		productIP = products[fullname].addresses[0]+":"+products[fullname].port;
+		const productIP = products[fullname].addresses[0]+":"+products[fullname].port;
 		selectedProduct = JSON.parse(JSON.stringify(products[fullname]));
-		src = document.querySelector('#product-view').getAttribute('src');
+		const src = document.querySelector('#product-view').getAttribute('src');
 		if (!src || fromDiscovery || src.indexOf("http://"+productIP+"/") == -1 || productConnectionStatus == "disconnected") {
 			/*
 			Reload if any of the following is true:
@@ -602,8 +609,8 @@ if (remote) {
 	productContextMenu.append(new MenuItem({ label: 'Hide Product...', click() { console.log('item 1 clicked') } }));
 	
 	window.addEventListener('contextmenu', (e) => {
-	  e.preventDefault();
-	  productContextMenu.popup({ window: remote.getCurrentWindow() });
+		e.preventDefault();
+		productContextMenu.popup({ window: remote.getCurrentWindow() });
 	}, false);
 }
 
