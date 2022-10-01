@@ -29,8 +29,18 @@ const ipc = ipcRenderer;
 let darkAppearance = false;
 let windows = false;
 
-window.matchMedia("(prefers-color-scheme: dark)").addListener(e => e.matches && setAppearance(true))
-window.matchMedia("(prefers-color-scheme: light)").addListener(e => e.matches && setAppearance(false))
+const darkMQL = window.matchMedia("(prefers-color-scheme: dark)");
+const lightMQL = window.matchMedia("(prefers-color-scheme: light)");
+darkMQL.addEventListener("change", (e) => {
+	if(!e.matches) { return; }
+	
+	setAppearance(true)
+});
+lightMQL.addEventListener("change", (e) => {
+	if(!e.matches) { return; }
+
+	setAppearance(false)
+});
 
 function setAppearance(dark) {
 	if (dark == undefined) {
