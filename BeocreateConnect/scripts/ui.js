@@ -563,7 +563,6 @@ let productConnectionStatus = "disconnected";
 function configureProduct(fullname, fromDiscovery) {
 	if (products[fullname]) {
 		shouldEnableRefreshButton = true;
-		endAssistant();
 		setWindowTitle(products[fullname].name);
 		showMenuButton(true);
 		connectOnDiscovery = {identifier: null, productName: null};
