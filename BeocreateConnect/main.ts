@@ -146,7 +146,6 @@ export async function safeSSHClient(sourceIP: string, username: string, password
 }
 
 export async function isBindingLocked(client: NodeSSH) {
-	const lockFileName = 'connected.lock';
 	const isLockedCommand = `cat ${lockFileName}`;
 
 	const isLocked = await client.execCommand(isLockedCommand);
