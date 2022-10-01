@@ -19,7 +19,7 @@ SOFTWARE.
 */
 
 // BEOCREATE CONNECT
-import { app, Menu, BrowserWindow, ipcMain, nativeTheme, systemPreferences, shell } from 'electron';
+import { app, Menu, BrowserWindow, ipcMain, nativeTheme, systemPreferences, shell, MenuItem } from 'electron';
 
 import windowStateKeeper from 'electron-window-state';
 
@@ -142,13 +142,13 @@ if (process.platform === 'darwin') {
   ]
 };
 
-const menu = Menu.buildFromTemplate(template as any);
+const menu = Menu.buildFromTemplate(template as unknown as MenuItem[]);
 Menu.setApplicationMenu(menu);
 
 let win: BrowserWindow | null = null;
   
 function createWindow () {
-	let mainWindowState = windowStateKeeper({
+	const mainWindowState = windowStateKeeper({
 	    defaultWidth: 820,
 	    defaultHeight: 600
 	});
@@ -310,13 +310,19 @@ function stopDiscovery() {
 let products: Record<string, Service> = {};
 let bonjourProductCount = 0;
 
-function discoveryEvent(event: string, service: Service) {
-	if (debug) console.log(event, new Date(Date.now()).toLocaleString(), service.fullname, service.addresses, service.txt);
+function discoveryEvent(event: string, service: Service): void {
+	if (debug) {
+		console.log(event, new Date(Date.now()).toLocaleString(), service.fullname, service.addresses, service.txt);
+	}
+	
 	if (event == "up" || event == "down") {
-		let list = browser?.list() ?? [];
-		//list = [];
-		if (list) refreshProducts(list);
-		bonjourProductCount = (list) ? list.length : 0;
+		const list = browser?.list() ?? [];
+
+		if (list) {
+			refreshProducts(list);
+		}
+
+		bonjourProductCount = list ? list.length : 0;
 	}
 	
 	if (event == "changed") {
@@ -328,7 +334,7 @@ function discoveryEvent(event: string, service: Service) {
 	
 }
 
-function refreshProducts(services?: Service[] | null) {
+function refreshProducts(services?: Service[] | null): void {
 	if (services == null) {
 		services = [];
 		if (browser) {
@@ -364,37 +370,57 @@ function refreshProducts(services?: Service[] | null) {
 	}
 }
 
-function setProductInfo(service: Service) {
+interface Product {
+	fullname: string | number;
+	addresses: string[];
+	host: string;
+	port: string;
+	name: string;
+	modelID: string | null;
+	modelName: string | null;
+	productImage: string | null;
+	systemID: string | null;
+	systemStatus: string | null;
+	boundTo: string | undefined;
+	manual: boolean;
+	txt: Record<string, string>;
+}
+
+function setProductInfo(service: Service): Product {
 	let modelID = null;
 	let modelName = null;
 	let systemID = null;
 	let systemStatus = null;
 	let productImage = null;
-	for (let key in service.txt) {
-	    if (service.txt.hasOwnProperty(key)) {
-	        switch (key) {
-				case "type":
-				case "device_type":
-					modelID = service.txt[key];
-					break;
-				case "typeui":
-					modelName = service.txt[key];
-					break;
-				case "id":
-				case "device_id":
-					systemID = service.txt[key];
-					break;
-				case "status":
-				case "device_status":
-					systemStatus = service.txt[key];
-					break;
-				case "image":
-					productImage = service.txt[key];
-					break;
-			}
-	    }
+
+	for (const key in service.txt) {
+		if(!service.txt.hasOwnProperty(key)) {
+			continue;
+		}
+
+		switch (key) {
+			case "type":
+			case "device_type":
+				modelID = service.txt[key];
+				break;
+			case "typeui":
+				modelName = service.txt[key];
+				break;
+			case "id":
+			case "device_id":
+				systemID = service.txt[key];
+				break;
+			case "status":
+			case "device_status":
+				systemStatus = service.txt[key];
+				break;
+			case "image":
+				productImage = service.txt[key];
+				break;
+		}
 	}
-	let product = {
+
+	let product: Product = {
 		fullname: service.fullname,
 		addresses: service.addresses,
 		host: service.host,
@@ -405,7 +431,7 @@ function setProductInfo(service: Service) {
 		productImage: productImage,
 		systemID: systemID,
 		systemStatus: systemStatus,
-		boundTo: undefined as string | undefined,
+		boundTo: undefined,
 		manual: false,
 		txt: {}
 	};
