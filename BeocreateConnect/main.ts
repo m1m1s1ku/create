@@ -26,6 +26,7 @@ import { Browser, tcp } from "dnssd2";
 import { networkInterfaces } from "os";
 
 import { NodeSSH } from 'node-ssh';
+import { fetch } from 'cross-fetch';
 
 let debug = false;
 let activeWindow = true;
@@ -490,7 +491,6 @@ let manualDiscoveryInterval: string | number | NodeJS.Timeout;
 let manualDiscoveryAddress = "10.0.0.1";
 async function discoverProductAtAddress(address: string): Promise<void> {
 	if (bonjourProductCount == 0) {
-		const { fetch } = await import('got-fetch');
 		fetch('http://'+address+'/product-information/discovery').then(res => {
 			if (res.status == 200) {
 				res.json().then(body => {
