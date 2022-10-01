@@ -569,31 +569,35 @@ function getProductInfo(product) {
 			}
 		}
 	}
-	return {model: model, image: image, classes: classes};
+	return {
+		model: model, 
+		image: image, 
+		classes: classes
+	};
 }
 
 let productConnectionStatus = "disconnected";
 
 function configureProduct(fullname, fromDiscovery) {
-	if (products[fullname]) {
-		shouldEnableRefreshButton = true;
-		setWindowTitle(products[fullname].name);
-		showMenuButton(true);
-		connectOnDiscovery = {identifier: null, productName: null};
-		const productIP = products[fullname].addresses[0]+":"+products[fullname].port;
-		const src = document.querySelector('#product-view').getAttribute('src');
-		if (!src || fromDiscovery || src.indexOf("http://"+productIP+"/") == -1 || productConnectionStatus == "disconnected") {
-			/*
-			Reload if any of the following is true:
-			- Product view has no source
-			- This is a "connect on discovery" request
-			- The product view URL is not the requested URL
-			- The product currently in view is disconnected (maybe it was shut down last time)
-			*/
-			document.querySelector('#product-view').setAttribute('src', "http://"+productIP+"/");
-		}
-		showSection("product-view", true);
+	if (!products[fullname]) { return; }
+
+	shouldEnableRefreshButton = true;
+	setWindowTitle(products[fullname].name);
+	showMenuButton(true);
+	connectOnDiscovery = {identifier: null, productName: null};
+	const productIP = products[fullname].addresses[0]+":"+products[fullname].port;
+	const src = document.querySelector('#product-view').getAttribute('src');
+	if (!src || fromDiscovery || src.indexOf("http://"+productIP+"/") == -1 || productConnectionStatus == "disconnected") {
+		/*
+		Reload if any of the following is true:
+		- Product view has no source
+		- This is a "connect on discovery" request
+		- The product view URL is not the requested URL
+		- The product currently in view is disconnected (maybe it was shut down last time)
+		*/
+		document.querySelector('#product-view').setAttribute('src', "http://"+productIP+"/");
 	}
+	showSection("product-view", true);
 }
 
 // Right-click menu for products
