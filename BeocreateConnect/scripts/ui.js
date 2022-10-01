@@ -1,4 +1,6 @@
-/* Copyright 2018-2020 Bang & Olufsen A/S
+/* 
+Copyright 2018-2022 Bang & Olufsen A/S
+
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
 in the Software without restriction, including without limitation the rights
@@ -13,7 +15,9 @@ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.*/
+SOFTWARE.
+
+*/
 
 // BEOCREATE CONNECT
 const inElectron = true;
@@ -213,15 +217,6 @@ function titleBarMode(mode) {
 
 // MAIN MENU
 
-// Beautiful and bold colours designed by Polly Bosworth. Use them in fun combinations!
-let menuColourThemes = [
-	["mariner", "waterleaf", "spindle"],
-	["turquoise", "waxflower", "yellow"],
-	["turquoise", "waterleaf", "spindle"],
-	["turquoise", "spindle", "cherub"],
-	["carnation", "cherub", "spindle"]
-];
-
 let menuOpen = true;
 let menuTimeout;
 let shouldEnableRefreshButton = false;
@@ -235,10 +230,6 @@ function toggleMenu(force) {
 	if (menuOpen == false) {
 		document.getElementById('main-menu').classList.add('show');
 		document.body.classList.add('animating-menu', 'in-menu');
-
-		if (currentAssistant) {
-			endAssistant(true);
-		} 
 
 		menuTimeout = setTimeout(function() {
 			document.querySelector('#main-menu').classList.add('visible');
@@ -256,7 +247,6 @@ function toggleMenu(force) {
 		document.getElementById('main-menu').classList.remove('show');
 
 		connectOnDiscovery = {identifier: null, productName: null};
-		if (currentAssistant) startAssistant();
 		if (shouldEnableRefreshButton) {
 			document.querySelector('#refresh-button').classList.remove('disabled');
 		} else {
@@ -447,19 +437,6 @@ if (ipc) {
 			console.log("Removing", fullname);
 		}
 	});
-	
-	ipc.on('availableDrives', (event, drives) => {
-		console.log(drives);
-		document.querySelector('#drive-list').innerHTML = '';
-		for (d in drives) {
-			if (drives[d].busType == "USB") { // Only list USB drives.
-				size = Math.round(drives[d].size/100000000)/10;
-				if (size > 3) { // Make sure drive is large enough.
-					document.querySelector('#drive-list').innerHTML = '<div class="menu-item" onclick="selectDrive(\''+drives[d].raw+'\');"><div class="menu-label">'+drives[d].description+'</div><div class="menu-value">'+size+' GB</div></div>';
-				}
-			}
-		}
-	});
 }
 
 function refresh() {
@@ -620,114 +597,6 @@ if (remote) {
 	  productContextMenu.popup({ window: remote.getCurrentWindow() });
 	}, false);
 }
-
-// ASSISTANT FLOW
-
-let currentAssistant = null;
-function startAssistant(assistant) {
-	if (assistant) currentAssistant = assistant;
-	shouldEnableRefreshButton = false;
-	setTimeout(function() {
-		document.querySelector('#assistant-bar').classList.add('show');
-		setTimeout(function() {
-			document.body.classList.add('assistant');
-		}, 100);
-	}, 500);
-	if (assistant) {
-		switch (assistant) {
-			case "createCard":
-				setWindowTitle("Prepare a MicroSD Card");
-				assistantFlow();
-				break;
-			case "findAndSetUp":
-				setWindowTitle("First-Time Setup");
-				assistantFlow();
-				break;
-		}
-	}
-}
-
-function assistantButtons(previousText, nextText) {
-	document.querySelector('#assistant-previous').innerText = previousText;
-	document.querySelector('#assistant-next').innerText = nextText;
-}
-
-function enableAssistantButtons(previousEnabled, nextEnabled) {
-	if (previousEnabled) {
-		document.querySelector('#assistant-previous').classList.remove('disabled');
-	} else {
-		document.querySelector('#assistant-previous').classList.add('disabled');
-	}
-	if (nextEnabled) {
-		document.querySelector('#assistant-next').classList.remove('disabled');
-	} else {
-		document.querySelector('#assistant-next').classList.add('disabled');
-	}
-}
-
-function endAssistant(hideOnly) {
-	document.body.classList.remove('assistant');
-	setTimeout(function() {
-		document.querySelector('#assistant-bar').classList.remove('show');
-	}, 500);
-	if (!hideOnly) {
-		currentAssistant = null;
-	}
-}
-
-let assistantStep = 0;
-function assistantFlow(step) {
-	if (step != undefined) {
-		if (isNaN(step)) {
-			if (step == "next") {
-				assistantStep++;
-				direction = "right-left";
-			}
-			if (step == "previous") {
-				assistantStep--;
-				direction = "left-right";
-			}
-		} else {
-			assistantStep = step;
-			direction = false;
-		}
-	} else {
-		assistantStep = 0;
-		direction = false;
-	}
-
-	switch (currentAssistant) {
-		case "findAndSetUp":
-			switch (assistantStep) {
-				case 0:
-					assistantButtons("Cancel", "Next Step");
-					enableAssistantButtons(true, true);
-					showScreen('sd-to-product', direction);
-					showMenuButton(true);
-					break;
-				case 1:
-					assistantButtons("Previous Step", "Next Step");
-					showScreen('connect-power', direction);
-					enableAssistantButtons(true, true);
-					break;
-				case 2:
-					assistantButtons("Previous Step", "Next Step");
-					enableAssistantButtons(true, false);
-					showScreen('wait-for-discovery', direction);
-					//ipc.send("refreshProducts");
-					break;
-			}
-			break;
-	}
-}
-
-
-// SD CARD FLOW
-
-function selectDrive(raw) {
-	console.log(raw);
-}
-
 
 // COMMUNICATIONS FROM THE PRODUCT UI
 window.addEventListener("message", function(event) {
