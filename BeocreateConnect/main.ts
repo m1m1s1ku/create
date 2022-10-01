@@ -54,18 +54,18 @@ app.on('activate', () => {
 // DARK / LIGHT MODE
 if (process.platform == "darwin" && win) {
 	systemPreferences.subscribeNotification(
-	  'AppleInterfaceThemeChangedNotification',
-	  function theThemeHasChanged () {
-		win?.webContents.send('colourSchemeIsDark', nativeTheme.shouldUseDarkColors);
-	  }
+		'AppleInterfaceThemeChangedNotification',
+		function theThemeHasChanged () {
+			win?.webContents.send('colourSchemeIsDark', nativeTheme.shouldUseDarkColors);
+		}
 	)
 }
 
-ipcMain.on("bindAuxToAMP", (event, arg) => {
+ipcMain.on("bindAuxToAMP", () => {
 	bindBerries();
 });
 
-ipcMain.on("getAllProducts", (event, arg) => {
+ipcMain.on("getAllProducts", () => {
 	const products = getProducts();
 	win?.webContents.send('discoveredProducts', products);
 });

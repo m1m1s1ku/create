@@ -17,8 +17,11 @@
  "license": "MIT",
  "devDependencies": {
   "@types/ssh2": "^1.11.6",
+  "@typescript-eslint/eslint-plugin": "^5.38.1",
+  "@typescript-eslint/parser": "^5.38.1",
   "electron": "^20.2.0",
-  "electron-builder": "^23.3.3"
+  "electron-builder": "^23.3.3",
+  "eslint": "^8.24.0"
  },
  "dependencies": {
   "@tsconfig/node16": "^1.0.3",

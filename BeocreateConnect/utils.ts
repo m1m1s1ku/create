@@ -49,9 +49,9 @@ function startCheckingIPAddress(win: BrowserWindow | null): void {
 
 let oldIPs: string[] = [];
 function hasIPChanged(): boolean {
-	let ifaces = networkInterfaces();
-	let newIPs = []
-	for (let iface in ifaces) {
+	const ifaces = networkInterfaces();
+	const newIPs = [];
+	for (const iface in ifaces) {
 		const currentInterface = ifaces[iface];
 		if(!currentInterface) { continue; }
 
@@ -71,24 +71,24 @@ function hasIPChanged(): boolean {
 
 function equals(arrA: (unknown|unknown[])[], arrB: (unknown | unknown[])[]): boolean {
     if (!arrA){
-		return false;
-	}
+      return false;
+    }
 
     if (arrA.length != arrB?.length) {
-        return false;
-	}
+      return false;
+    }
 
     for (let i = 0, l=arrA.length; i < l; i++) {
-		const item = arrA[i];
-		const itemB = arrB[i];
+      const item = arrA[i];
+      const itemB = arrB[i];
 
-		if(item instanceof Array &&  itemB instanceof Array) {
-			if(!equals(item, itemB)) {
-				return false;
-			}
-		} else if (item != itemB) {
-			return false;
-		}
+      if(item instanceof Array &&  itemB instanceof Array) {
+        if(!equals(item, itemB)) {
+          return false;
+        }
+      } else if (item != itemB) {
+        return false;
+      }
     }
 
     return true;
@@ -96,8 +96,8 @@ function equals(arrA: (unknown|unknown[])[], arrB: (unknown | unknown[])[]): boo
 
 export function createWindow(): BrowserWindow {
 	const mainWindowState = windowStateKeeper({
-	    defaultWidth: 820,
-	    defaultHeight: 600
+      defaultWidth: 820,
+      defaultHeight: 600
 	});
 
 	const win = new BrowserWindow({
@@ -121,57 +121,57 @@ export function createWindow(): BrowserWindow {
   
 	// @todo : use build/index.html for release bundling.
 	// demistify that
-    //win.loadFile('build/index.html')
-    win.loadFile('index.html');
+  //win.loadFile('build/index.html')
+  win.loadFile('index.html');
 
-    win.webContents.on('did-finish-load', () => {
-		if (process.platform == 'darwin') {
-			win?.webContents.send('colourSchemeIsDark', nativeTheme.shouldUseDarkColors);
-		}
-		win?.webContents.send('styleForWindows', process.platform !== 'darwin');
-		setTimeout(function() {
-			win?.show();
-			setTimeout(function() {
-				startDiscovery(win);
-				startCheckingIPAddress(win);
-				startManualDiscovery(win);
-			}, 500);
-		}, 100);
-    });
-    
-    win.on('closed', () => {
-	  stopManualDiscovery();
+  win.webContents.on('did-finish-load', () => {
+    if (process.platform == 'darwin') {
+      win?.webContents.send('colourSchemeIsDark', nativeTheme.shouldUseDarkColors);
+    }
+    win?.webContents.send('styleForWindows', process.platform !== 'darwin');
+    setTimeout(function() {
+      win?.show();
+      setTimeout(function() {
+        startDiscovery(win);
+        startCheckingIPAddress(win);
+        startManualDiscovery(win);
+      }, 500);
+    }, 100);
+  });
+  
+  win.on('closed', () => {
+    stopManualDiscovery();
 
-	  if(ipCheckInterval) {
-		clearInterval(ipCheckInterval);
-	  }
+    if(ipCheckInterval) {
+      clearInterval(ipCheckInterval);
+    }
 
-	  stopDiscovery();
-      closeSSHClient();
-    });
-    
-    win.on('focus', () => {
-    	win?.webContents.send('windowEvent', "activate");
-		refreshProducts(win!, null);
-    });
-    
-    win.on('blur', () => {
-    	win?.webContents.send('windowEvent', "resignActive");
-    });
-	
-	win.on("enter-full-screen", () => {
-		win?.webContents.send('windowEvent', "fullScreen");
-	});
-	
-	win.on("leave-full-screen", () => {
-		win?.webContents.send('windowEvent', "windowed");
-	});
+    stopDiscovery();
+    closeSSHClient();
+  });
+  
+  win.on('focus', () => {
+    win?.webContents.send('windowEvent', "activate");
+    refreshProducts(win, null);
+  });
+  
+  win.on('blur', () => {
+    win?.webContents.send('windowEvent', "resignActive");
+  });
 
-    win.webContents.setWindowOpenHandler((details) => {
-        shell.openExternal(details.url);
+  win.on("enter-full-screen", () => {
+    win?.webContents.send('windowEvent', "fullScreen");
+  });
 
-        return { action: "allow" };
-    });
+  win.on("leave-full-screen", () => {
+    win?.webContents.send('windowEvent', "windowed");
+  });
+
+  win.webContents.setWindowOpenHandler((details) => {
+    shell.openExternal(details.url);
+
+    return { action: "allow" };
+  });
 
 	return win;
 }
@@ -286,7 +286,7 @@ export default function defineMenu(win: BrowserWindow) {
           { type: 'separator' },
           { role: 'front' }
         ]
-    };
+    }
 
     const menu = Menu.buildFromTemplate(template as unknown as MenuItem[]);
     Menu.setApplicationMenu(menu);

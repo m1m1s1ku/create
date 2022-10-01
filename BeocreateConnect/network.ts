@@ -27,7 +27,7 @@ import { Product, Service } from "./beocreate-connect";
 
 let manuallyDiscoveredProduct: Service | null = null;
 let manualDiscoveryInterval: NodeJS.Timer | null = null;
-let manualDiscoveryAddress = "10.0.0.1";
+const manualDiscoveryAddress = "10.0.0.1";
 
 let bonjourProductCount = 0;
 
@@ -48,18 +48,18 @@ export function getProducts() {
 
 export function startDiscovery(win: BrowserWindow | null, once?: boolean) { // Start or restart discovery.
 	if (!once || !startedOnce) {
-	  	if (!browser) {
-		  	browser = new Browser(tcp('beocreate'), {maintain: true});
+		if (!browser) {
+			browser = new Browser(tcp('beocreate'), {maintain: true});
 	
-	  		browser?.on('serviceUp', service => discoveryEvent("up", service, win));
-	  		browser?.on('serviceDown', service => discoveryEvent("down", service, win));
-	  		browser?.on('serviceChanged', service => discoveryEvent("changed", service, win));
-	  		browser?.on('error', error => console.log("dnssd error: "+error));
-	  	} else {
-	  		stopDiscovery();
-	  	}
+			browser?.on('serviceUp', service => discoveryEvent("up", service, win));
+			browser?.on('serviceDown', service => discoveryEvent("down", service, win));
+			browser?.on('serviceChanged', service => discoveryEvent("changed", service, win));
+			browser?.on('error', error => console.log("dnssd error: "+error));
+		} else {
+			stopDiscovery();
+		}
 
-	  	console.log("Starting discovery.");
+		console.log("Starting discovery.");
 		browser?.start();
 		bonjourProductCount = 0;
 		startedOnce = true;
@@ -116,7 +116,7 @@ export async function refreshProducts(win: BrowserWindow, services?: Service[] |
 		}
 		
 		// Find out which services have been removed.
-		for (let fullname in products) {
+		for (const fullname in products) {
 			let serviceFound = -1;
 			for (let s = 0; s < services.length; s++) {
 				if (services[s].fullname == fullname) serviceFound = s;
@@ -137,7 +137,7 @@ export async function setProductInfo(service: Service): Promise<Product> {
 	let productImage = null;
 
 	for (const key in service.txt) {
-		if(!service.txt.hasOwnProperty(key)) {
+		if(!Object.prototype.hasOwnProperty.call(service.txt, key)) {
 			continue;
 		}
 
@@ -163,7 +163,7 @@ export async function setProductInfo(service: Service): Promise<Product> {
 		}
 	}
 
-	let product: Product = {
+	const product: Product = {
 		fullname: service.fullname,
 		addresses: service.addresses,
 		host: service.host,
@@ -196,8 +196,9 @@ export async function setProductInfo(service: Service): Promise<Product> {
 }
 
 
-async function discoveryEvent(event: string, service: Service, win: BrowserWindow | null): Promise<void> {
-	if (true) {
+async function discoveryEvent(event: string, service: Service, win: BrowserWindow | null): Promise<void> {
+	const debug = true;
+	if (debug) {
 		console.log(event, new Date(Date.now()).toLocaleString(), service.fullname, service.addresses, service.txt);
 	}
 	
@@ -236,12 +237,12 @@ async function performNetworkDiscovery(address: string, win: BrowserWindow) {
 
 			if (!manuallyDiscoveredProduct) {
 				manuallyDiscoveredProduct = service;
-				await refreshProducts(win!);
+				await refreshProducts(win);
 			}
 		} else {
 			if (manuallyDiscoveredProduct != null) {
 				manuallyDiscoveredProduct = null;
-				await refreshProducts(win!);
+				await refreshProducts(win);
 			}
 		}
 	} catch (err) {
@@ -258,7 +259,9 @@ async function discoverProductAtAddress(address: string, win: BrowserWindow | nu
 	if(manuallyDiscoveredProduct === null) { return; }
 
 	manuallyDiscoveredProduct = null;
-	await refreshProducts(win!);
+	if(win) {
+		await refreshProducts(win);
+	}
 }
 
 export function startManualDiscovery(win: BrowserWindow | null): void {
