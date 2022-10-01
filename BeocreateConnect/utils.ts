@@ -5,10 +5,9 @@ import { networkInterfaces } from "os";
 import { 
     bindBerries,
     closeSSHClient,
-    currentRouting,
 } from "./main";
-import { MenuItemRebrand, Product, Service } from "./beocreate-connect";
-import { browser, manuallyDiscoveredProduct, products, startDiscovery, startManualDiscovery, stopDiscovery, stopManualDiscovery } from "./network";
+import { MenuItemRebrand } from "./beocreate-connect";
+import { refreshProducts, startDiscovery, startManualDiscovery, stopDiscovery, stopManualDiscovery } from "./network";
 
 let ipCheckInterval: NodeJS.Timer | null = null;
 function startCheckingIPAddress(win: BrowserWindow | null): void {
@@ -266,104 +265,4 @@ export default function defineMenu(win: BrowserWindow) {
     Menu.setApplicationMenu(menu);
     
     return menu;
-}
-
-export function refreshProducts(win: BrowserWindow, services?: Service[] | null): void {
-	if (services == null) {
-		services = [];
-		if (browser) {
-			services = browser.list();
-		}
-	}
-
-	if (services.length == 0 && manuallyDiscoveredProduct) {
-		services.push(manuallyDiscoveredProduct);
-	}
-
-	if (services) {
-		// Find out which services have been added.
-		for (let s = 0; s < services.length; s++) {
-			if (!products[services[s].fullname]) {
-				setProductInfo(services[s]); // Adds product.
-				//console.log(products[services[s].fullname].addresses);
-				win?.webContents.send('addProduct', products[services[s].fullname]);
-			}
-		}
-		
-		// Find out which services have been removed.
-		for (let fullname in products) {
-			let serviceFound = -1;
-			for (let s = 0; s < services.length; s++) {
-				if (services[s].fullname == fullname) serviceFound = s;
-			}
-			if (serviceFound == -1) {
-				win?.webContents.send('removeProduct', products[fullname]);
-				delete products[fullname]; // Removes product.
-			}
-		}
-	}
-}
-
-export function setProductInfo(service: Service): Product {
-	let modelID = null;
-	let modelName = null;
-	let systemID = null;
-	let systemStatus = null;
-	let productImage = null;
-
-	for (const key in service.txt) {
-		if(!service.txt.hasOwnProperty(key)) {
-			continue;
-		}
-
-		switch (key) {
-			case "type":
-			case "device_type":
-				modelID = service.txt[key];
-				break;
-			case "typeui":
-				modelName = service.txt[key];
-				break;
-			case "id":
-			case "device_id":
-				systemID = service.txt[key];
-				break;
-			case "status":
-			case "device_status":
-				systemStatus = service.txt[key];
-				break;
-			case "image":
-				productImage = service.txt[key];
-				break;
-		}
-	}
-
-	let product: Product = {
-		fullname: service.fullname,
-		addresses: service.addresses,
-		host: service.host,
-		port: service.port,
-		name: service.name,
-		modelID: modelID,
-		modelName: modelName,
-		productImage: productImage,
-		systemID: systemID,
-		systemStatus: systemStatus,
-		boundTo: undefined,
-		manual: false,
-		txt: {}
-	};
-
-	// @note : auto-magic bind (jack button => reflect by bolt on UI)
-	if(currentRouting && currentRouting.from === service.name) {
-		product.boundTo = currentRouting.to;
-	} else if(currentRouting && currentRouting.to === service.name) {
-		product.boundTo = currentRouting.from;
-	}
-
-	if (service.manual) {
-		product.manual = true;
-	} 
-	products[service.fullname] = product;
-	return product;
 }

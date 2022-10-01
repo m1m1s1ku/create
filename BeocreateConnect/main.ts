@@ -25,7 +25,7 @@ import { app, BrowserWindow, ipcMain, nativeTheme, systemPreferences } from 'ele
 import { NodeSSH } from 'node-ssh';
 import { ClientChannel } from 'ssh2';
 import { createWindow } from './utils';
-import { products, startDiscovery, startManualDiscovery } from './network';
+import { findProduct, getProducts, startDiscovery, startManualDiscovery } from './network';
 
 let win: BrowserWindow | null = null;
   
@@ -57,6 +57,7 @@ if (process.platform == "darwin" && win) {
 }
 
 ipcMain.on("getAllProducts", (event, arg) => {
+	const products = getProducts();
 	win?.webContents.send('discoveredProducts', products);
 });
 
@@ -66,19 +67,6 @@ function onRefreshProducts() {
 }
 
 ipcMain.on("refreshProducts", onRefreshProducts);
-
-function findProduct(name: string) {
-	const productKey = Object.keys(products).find(key => {
-		const product = products[key];
-		if(product.name === name) {
-			return key;
-		}
-
-		return null;
-	});
-
-	return productKey && products[productKey] ? products[productKey] : null;
-}
 
 // @todo : Add settings to change this easily
 const bitrate = "-f S24_LE";
