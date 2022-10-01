@@ -601,6 +601,7 @@ function configureProduct(fullname, fromDiscovery) {
 }
 
 // Right-click menu for products
+// @todo : Seems broken (and undef)
 if (remote) {
 	const productContextMenu = new Menu();
 	productContextMenu.append(new MenuItem({ label: 'Copy Link', click() { console.log('item 1 clicked') } }));
