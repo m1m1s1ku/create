@@ -538,6 +538,7 @@ async function connectSSH() {
 	if(isConnected.stdout) {
 		console.warn('Already connected to', isConnected.stdout, 'killing');
 		await sshInstance.execCommand(killCommand);
+		cleanup();
 	} else {
 		await sshInstance.execCommand(lockCommand);
 
@@ -549,15 +550,8 @@ async function connectSSH() {
 			}
 		});
 
-		// @note : enforce killall on error (enable switch aspect of the button)
-		if(result.stderr) {
-			await sshInstance?.execCommand(killCommand);
-
-			cleanup();
-			refreshProducts();
-		} else {
-			refreshProducts();
-		}
+		refreshProducts();
+		
 		console.log('STDOUT: ' + result.stdout);
 		console.log('STDERR: ' + result.stderr);
 	}
