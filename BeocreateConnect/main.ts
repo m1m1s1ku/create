@@ -27,9 +27,10 @@ import { NodeSSH } from 'node-ssh';
 import { fetch } from 'cross-fetch';
 import { ClientChannel } from 'ssh2';
 import { createWindow, refreshProducts, setProductInfo } from './utils';
+import { Service } from './beocreate-connect';
 
 let debug = false;
-export let win: BrowserWindow | null = null;
+let win: BrowserWindow | null = null;
   
 app.on('ready', () => {
 	win = createWindow();
@@ -56,16 +57,6 @@ if (process.platform == "darwin" && win) {
 		win?.webContents.send('colourSchemeIsDark', nativeTheme.shouldUseDarkColors);
 	  }
 	)
-}
-
-export interface Service {
-	host: string;
-	port: string;
-	name: string;
-	manual: boolean;
-	fullname: string | number; 
-	addresses: string[]; 
-	txt: Record<string, string>;
 }
   
 // FIND BEOCREATE SYSTEMS
@@ -123,7 +114,7 @@ function discoveryEvent(event: string, service: Service): void {
 		const list = browser?.list() ?? [];
 
 		if (list) {
-			refreshProducts(list);
+			refreshProducts(win!, list);
 		}
 
 		bonjourProductCount = list ? list.length : 0;
@@ -282,12 +273,12 @@ async function discoverProductAtAddress(address: string): Promise<void> {
 	
 				if (!manuallyDiscoveredProduct) {
 					manuallyDiscoveredProduct = service;
-					refreshProducts();
+					refreshProducts(win!);
 				}
 			} else {
 				if (manuallyDiscoveredProduct != null) {
 					manuallyDiscoveredProduct = null;
-					refreshProducts();
+					refreshProducts(win!);
 				}
 			}
 		} catch (err) {
@@ -296,7 +287,7 @@ async function discoverProductAtAddress(address: string): Promise<void> {
 	} else {
 		if (manuallyDiscoveredProduct != null) {
 			manuallyDiscoveredProduct = null;
-			refreshProducts();
+			refreshProducts(win!);
 		}
 	}
 }

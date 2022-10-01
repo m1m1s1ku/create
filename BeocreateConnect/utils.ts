@@ -1,23 +1,9 @@
 import { app, BrowserWindow, Menu, MenuItem, nativeTheme, shell } from "electron";
 import windowStateKeeper from "electron-window-state";
-import { browser, connectSSH, currentRouting, manuallyDiscoveredProduct, products, Service, sshInstance, startDiscovery, startManualDiscovery, stopDiscovery, stopManualDiscovery, win } from "./main";
 import { networkInterfaces } from "os";
 
-// MENU
-interface SubmenuItem {
-	label?: string;
-	click?: () => void; 
-	type?: string;
-	accelerator?: string | boolean;
-	role?: string;
-	submenu?: { role: string; }[];
-}
-
-interface MenuItemRebrand {
-	label?: string;
-	role?: string;
-	submenu: SubmenuItem[];
-}
+import { browser, connectSSH, currentRouting, manuallyDiscoveredProduct, products, sshInstance, startDiscovery, startManualDiscovery, stopDiscovery, stopManualDiscovery } from "./main";
+import { MenuItemRebrand, Product, Service } from "./beocreate-connect";
 
 let ipCheckInterval: NodeJS.Timer | null = null;
 function startCheckingIPAddress(): void {
@@ -137,7 +123,7 @@ export function createWindow(): BrowserWindow {
     
     win.on('focus', () => {
     	win?.webContents.send('windowEvent', "activate");
-		refreshProducts(null);
+		refreshProducts(win!, null);
     });
     
     win.on('blur', () => {
@@ -279,7 +265,7 @@ export default function defineMenu(win: BrowserWindow) {
     return menu;
 }
 
-export function refreshProducts(services?: Service[] | null): void {
+export function refreshProducts(win: BrowserWindow, services?: Service[] | null): void {
 	if (services == null) {
 		services = [];
 		if (browser) {
@@ -313,22 +299,6 @@ export function refreshProducts(services?: Service[] | null): void {
 			}
 		}
 	}
-}
-
-export interface Product {
-	fullname: string | number;
-	addresses: string[];
-	host: string;
-	port: string;
-	name: string;
-	modelID: string | null;
-	modelName: string | null;
-	productImage: string | null;
-	systemID: string | null;
-	systemStatus: string | null;
-	boundTo: string | undefined;
-	manual: boolean;
-	txt: Record<string, string>;
 }
 
 export function setProductInfo(service: Service): Product {
