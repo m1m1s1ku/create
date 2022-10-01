@@ -454,10 +454,12 @@ ipcMain.on("getAllProducts", (event, arg) => {
 	win?.webContents.send('discoveredProducts', products);
 });
 
-ipcMain.on("refreshProducts", (event, arg) => {
+function onRefreshProducts() {
 	startDiscovery(); 
 	startManualDiscovery();
-});
+}
+
+ipcMain.on("refreshProducts", onRefreshProducts);
 
 function findProduct(name: string) {
 	const productKey = Object.keys(products).find(key => {
@@ -485,6 +487,7 @@ async function connectSSH() {
 		clientChannel = null;
 		sshInstance = null;
 		currentRouting = null;
+		onRefreshProducts();
 	}
 
 	if(sshInstance) {
@@ -551,13 +554,11 @@ async function connectSSH() {
 		await sshInstance.exec(linkCommand, [], {
 			onStdout(chunk) {
 				console.log('out:', chunk.toString('utf8'));
-				startDiscovery(); 
-				startManualDiscovery();
+				onRefreshProducts();
 			},
 			onStderr(chunk) {
 				console.log('err:', chunk.toString('utf8'));
-				startDiscovery(); 
-				startManualDiscovery();
+				onRefreshProducts();
 			},
 			onChannel: (client) => {
 				clientChannel = client;
