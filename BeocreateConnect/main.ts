@@ -30,120 +30,10 @@ import { NodeSSH } from 'node-ssh';
 import { fetch } from 'cross-fetch';
 import { ClientChannel } from 'ssh2';
 
+import defineMenu from './utils';
+
 let debug = false;
 let activeWindow: boolean | null = true;
-
-// MENU
-interface SubmenuItem {
-	label?: string;
-	click?: () => void; 
-	type?: string;
-	accelerator?: string | boolean;
-	role?: string;
-	submenu?: { role: string; }[];
-}
-
-interface MenuItemRebrand {
-	label?: string;
-	role?: string;
-	submenu: SubmenuItem[];
-}
-
-const template: MenuItemRebrand[] = [
-  {
-    label: 'Product',
-    submenu: [
-      { label: 'Discover Products Again',
-      click () { startDiscovery(); startManualDiscovery(); }},
-	  { type: 'separator' },
-	  { label: 'Reload Product View',
-	  click () { win?.webContents.send('reloadProductView') }, accelerator: "CmdOrCtrl+R"},
-	  { type: 'separator'},
-      { label: 'Bind Aux to Amp',
-      click () { connectSSH(); }},
-    ]
-  },
-  {
-    label: 'Edit',
-    submenu: [
-      { role: 'undo' },
-      { role: 'redo' },
-      { type: 'separator' },
-      { role: 'cut' },
-      { role: 'copy' },
-      { role: 'paste' },
-      { role: 'pasteandmatchstyle' },
-      { role: 'delete' },
-      { role: 'selectall' }
-    ]
-  },
-  {
-    label: 'View',
-    submenu: [
-      { role: 'resetzoom' },
-      { role: 'zoomin' },
-      { role: 'zoomout' },
-      { type: 'separator' },
-      { role: 'togglefullscreen' }
-    ]
-  },
-  {
-	label: 'Develop',
-    submenu: [
-      { role: 'reload', accelerator: false },
-      { role: 'forcereload', accelerator: false },
-      { role: 'toggledevtools' }
-    ]
-  },
-  {
-    role: 'window',
-    submenu: [
-      { role: 'minimize' },
-      { role: 'close' }
-    ]
-  }
-]
-
-if (process.platform === 'darwin') {
-  template.unshift({
-    label: app.getName(),
-    submenu: [
-      { role: 'about' },
-      { type: 'separator' },
-      { role: 'services' },
-      { type: 'separator' },
-      { role: 'hide' },
-      { role: 'hideothers' },
-      { role: 'unhide' },
-      { type: 'separator' },
-      { role: 'quit' }
-    ]
-  })
-
-  // Edit menu
-  template[2].submenu.push(
-    { type: 'separator' },
-    {
-      label: 'Speech',
-      submenu: [
-        { role: 'startspeaking' },
-        { role: 'stopspeaking' }
-      ]
-    }
-  )
-
-  // Window menu
-  template[5].submenu = [
-    { role: 'close' },
-    { role: 'minimize' },
-    { role: 'zoom' },
-    { type: 'separator' },
-    { role: 'front' }
-  ]
-};
-
-const menu = Menu.buildFromTemplate(template as unknown as MenuItem[]);
-Menu.setApplicationMenu(menu);
 
 let win: BrowserWindow | null = null;
   
@@ -167,6 +57,8 @@ function createWindow () {
 		backgroundColor: '#FFFFFF', 
 		webPreferences: { experimentalFeatures: false, nodeIntegration: true, contextIsolation: false,}
 	});
+
+	defineMenu(win);
 	
 	mainWindowState.manage(win);
   
@@ -273,7 +165,8 @@ let browser: {
 	list: () => Service[];
 } | null = null;
 let startedOnce = false;
-function startDiscovery(once?: boolean) { // Start or restart discovery.
+
+export function startDiscovery(once?: boolean) { // Start or restart discovery.
 	if (!once || !startedOnce) {
 	  	if (!browser) {
 		  	browser = new Browser(tcp('beocreate'), {maintain: true});
@@ -293,7 +186,7 @@ function startDiscovery(once?: boolean) { // Start or restart discovery.
   }
 }
 
-function stopDiscovery() {
+export function stopDiscovery() {
 	if(!browser) { return; }
 
 	browser.stop();
@@ -480,7 +373,8 @@ let currentRouting: {
 	from: string;
 	to: string;
 } | null = null;
-async function connectSSH() {
+
+export async function connectSSH() {
 	function cleanup () {
 		sshInstance?.dispose();
 		clientChannel?.close();
@@ -612,7 +506,7 @@ async function discoverProductAtAddress(address: string): Promise<void> {
 	}
 }
 
-function startManualDiscovery(): void {
+export function startManualDiscovery(): void {
 	manuallyDiscoveredProduct = null;
 
 	stopManualDiscovery();
@@ -623,7 +517,7 @@ function startManualDiscovery(): void {
 	}, 10000);
 }
 
-function stopManualDiscovery(): void {
+export function stopManualDiscovery(): void {
 	if(!manualDiscoveryInterval) {
 		return;
 	}
