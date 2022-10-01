@@ -543,10 +543,10 @@ async function connectSSH() {
 
 	// @note : enforce killall on error (enable switch aspect of the button)
 	if(result.stderr) {
-		sshInstance?.execCommand(killCommand).then(() => {
-			cleanup();
-			refreshProducts();
-		});
+		await sshInstance?.execCommand(killCommand);
+
+		cleanup();
+		refreshProducts();
 	} else {
 		refreshProducts();
 	}
