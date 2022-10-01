@@ -486,7 +486,7 @@ async function connectSSH() {
 	console.log('STDERR: ' + result.stderr);
 }
 
-ipcMain.on("bindRCAToAMP", (event, arg) => {
+ipcMain.on("bindAuxToAMP", (event, arg) => {
 	connectSSH();
 });
 
