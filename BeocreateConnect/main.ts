@@ -421,7 +421,7 @@ function findProduct(name) {
 let clientChannel = null;
 let sshInstance = null;
 let currentRouting = null;
-function connectSSH() {
+async function connectSSH() {
 	function cleanup () {
 		sshInstance?.dispose();
 		clientChannel?.close();
@@ -429,12 +429,13 @@ function connectSSH() {
 		sshInstance = null;
 		currentRouting = null;
 	}
+
 	if(sshInstance) {
 		cleanup();
 		return;
 	}
 
-	sshInstance = new NodeSSH()
+	sshInstance = new NodeSSH();
 
 	currentRouting = {
 		from: 'AuxBerry',
@@ -451,37 +452,38 @@ function connectSSH() {
 
 	const audioParams = `${bitrate} ${codec} ${samplingRate} ${channels}`;
 
-	return sshInstance.connect({
+	await sshInstance.connect({
 		host: source.addresses[0],
 		username: 'root',
 		password: 'hifiberry'
-	}).then(() => {
-		// @todo : Add settings to create this command dynamically.
-		return sshInstance.execCommand(`arecord -D plughw:0,0 ${audioParams} | ssh -C root@${destination.addresses[0]} -i rcaberry aplay ${audioParams}`, {
-			// @note : hack, without this, channel.close don't work.
-			pty: true,
-			onChannel: (client) => {
-				clientChannel = client;
-				setTimeout(() => {
-					refreshProducts();
-				}, 500);
-			} 
-		}).then(function(result) {
-			// @note : enforce killall on error (enable switch aspect of the button)
-			if(result.stderr) {
-				sshInstance?.execCommand('killall arecord').then(() => {
-					cleanup();
-					refreshProducts();
-				});
-			} else {
-				setTimeout(() => {
-					refreshProducts();
-				}, 500);
-			}
-			console.log('STDOUT: ' + result.stdout)
-			console.log('STDERR: ' + result.stderr)
-		});
 	});
+
+	// @todo : Add settings to create this command dynamically.
+	const linkCommand = `arecord -D plughw:0,0 ${audioParams} | ssh -C root@${destination.addresses[0]} -i rcaberry aplay ${audioParams}`;
+
+	const result = await sshInstance.execCommand(linkCommand, {
+		pty: true,
+		onChannel: (client) => {
+			clientChannel = client;
+			setTimeout(() => {
+				refreshProducts();
+			}, 500);
+		}
+	});
+
+	// @note : enforce killall on error (enable switch aspect of the button)
+	if(result.stderr) {
+		sshInstance?.execCommand('killall arecord').then(() => {
+			cleanup();
+			refreshProducts();
+		});
+	} else {
+		setTimeout(() => {
+			refreshProducts();
+		}, 500);
+	}
+	console.log('STDOUT: ' + result.stdout);
+	console.log('STDERR: ' + result.stderr);
 }
 
 ipcMain.on("bindRCAToAMP", (event, arg) => {
