@@ -15,7 +15,8 @@ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.*/
+SOFTWARE.
+*/
 
 // BEOCREATE CONNECT
 import { app, Menu, BrowserWindow, ipcMain, nativeTheme, systemPreferences, shell } from 'electron';
@@ -27,9 +28,10 @@ import { networkInterfaces } from "os";
 
 import { NodeSSH } from 'node-ssh';
 import { fetch } from 'cross-fetch';
+import { ClientChannel } from 'ssh2';
 
 let debug = false;
-let activeWindow = true;
+let activeWindow: boolean | null = true;
 
 // MENU
 interface SubmenuItem {
@@ -55,7 +57,7 @@ const template: MenuItemRebrand[] = [
       click () { startDiscovery(); startManualDiscovery(); }},
 	  { type: 'separator' },
 	  { label: 'Reload Product View',
-	  click () { win.webContents.send('reloadProductView') }, accelerator: "CmdOrCtrl+R"},
+	  click () { win?.webContents.send('reloadProductView') }, accelerator: "CmdOrCtrl+R"},
 	  { type: 'separator'},
       { label: 'Bind Aux to Amp',
       click () { connectSSH(); }},
@@ -143,19 +145,14 @@ if (process.platform === 'darwin') {
 const menu = Menu.buildFromTemplate(template as any);
 Menu.setApplicationMenu(menu);
 
-let win
+let win: BrowserWindow | null = null;
   
 function createWindow () {
-    // Create the browser window.
 	let mainWindowState = windowStateKeeper({
 	    defaultWidth: 820,
 	    defaultHeight: 600
-	  });
-    //win = new BrowserWindow({width: 800, height: 600, minWidth: 450, minHeight: 300, acceptFirstMouse: true, titleBarStyle: 'hiddenInset', title: "Bang & Olufsen Create", webPreferences: { scrollBounce: false }});
-	let hasFrame = true;
-	if (process.platform !== 'darwin') {
-	  hasFrame = false;
-	}
+	});
+
 	win = new BrowserWindow({
 		x: mainWindowState.x,
 		y: mainWindowState.y,
@@ -182,11 +179,11 @@ function createWindow () {
 
     win.webContents.on('did-finish-load', () => {
 		if (process.platform == 'darwin') {
-			win.webContents.send('colourSchemeIsDark', nativeTheme.shouldUseDarkColors);
+			win?.webContents.send('colourSchemeIsDark', nativeTheme.shouldUseDarkColors);
 		}
-		win.webContents.send('styleForWindows', process.platform !== 'darwin');
+		win?.webContents.send('styleForWindows', process.platform !== 'darwin');
 		setTimeout(function() {
-			win.show();
+			win?.show();
 			setTimeout(function() {
 				startDiscovery();
 				startCheckingIPAddress();
@@ -198,7 +195,11 @@ function createWindow () {
     win.on('closed', () => {
 	  win = null;
 	  stopManualDiscovery();
-	  clearInterval(ipCheckInterval);
+
+	  if(ipCheckInterval) {
+		clearInterval(ipCheckInterval);
+	  }
+
 	  stopDiscovery();
 	  if(sshInstance) {
 		sshInstance.dispose();
@@ -206,22 +207,22 @@ function createWindow () {
     });
     
     win.on('focus', () => {
-    	win.webContents.send('windowEvent', "activate");
+    	win?.webContents.send('windowEvent', "activate");
 		refreshProducts(null);
 		activeWindow = true;
     });
     
     win.on('blur', () => {
-    	win.webContents.send('windowEvent', "resignActive");
+    	win?.webContents.send('windowEvent', "resignActive");
 		activeWindow = null;
     });
 	
 	win.on("enter-full-screen", () => {
-		win.webContents.send('windowEvent', "fullScreen");
+		win?.webContents.send('windowEvent', "fullScreen");
 	});
 	
 	win.on("leave-full-screen", () => {
-		win.webContents.send('windowEvent', "windowed");
+		win?.webContents.send('windowEvent', "windowed");
 	});
 	
 	win.webContents.on('new-window', function(event, url){
@@ -230,71 +231,89 @@ function createWindow () {
 	});
 }
   
-app.on('ready', createWindow)
+app.on('ready', createWindow);
 
 app.on('window-all-closed', () => {
 	if (process.platform !== 'darwin') {
 		app.quit()
 	}
-})
+});
 
 app.on('activate', () => {
 	if (win === null) {
 		createWindow();
 	}
-})
-  
+});
 
 // DARK / LIGHT MODE
 if (process.platform == "darwin" && win) {
 	systemPreferences.subscribeNotification(
 	  'AppleInterfaceThemeChangedNotification',
 	  function theThemeHasChanged () {
-		win.webContents.send('colourSchemeIsDark', nativeTheme.shouldUseDarkColors);
+		win?.webContents.send('colourSchemeIsDark', nativeTheme.shouldUseDarkColors);
 	  }
 	)
 }
+
+interface Service {
+	host: string;
+	port: string;
+	name: string;
+	manual: boolean;
+	fullname: string | number; 
+	addresses: string[]; 
+	txt: Record<string, string>;
+}
   
 // FIND BEOCREATE SYSTEMS
-let browser = null;
+let browser: {
+	on: (eventName: string, callback: (service: Service) => void) => void;
+	start: () => void;
+	stop: () => void;
+	list: () => Service[];
+} | null = null;
 let startedOnce = false;
 function startDiscovery(once?: boolean) { // Start or restart discovery.
 	if (!once || !startedOnce) {
 	  	if (!browser) {
 		  	browser = new Browser(tcp('beocreate'), {maintain: true});
 	
-	  		browser.on('serviceUp', service => discoveryEvent("up", service));
-	  		browser.on('serviceDown', service => discoveryEvent("down", service));
-	  		browser.on('serviceChanged', service => discoveryEvent("changed", service));
-	  		browser.on('error', error => console.log("dnssd error: "+error));
+	  		browser?.on('serviceUp', service => discoveryEvent("up", service));
+	  		browser?.on('serviceDown', service => discoveryEvent("down", service));
+	  		browser?.on('serviceChanged', service => discoveryEvent("changed", service));
+	  		browser?.on('error', error => console.log("dnssd error: "+error));
 	  	} else {
 	  		stopDiscovery();
 	  	}
 
 	  	console.log("Starting discovery.");
-		browser.start();
+		browser?.start();
 		bonjourProductCount = 0;
 		startedOnce = true;
   }
 }
 
 function stopDiscovery() {
-	if (browser) {
-		browser.stop();
-		products = {};
-		bonjourProductCount = 0;
-		console.log("Stopping discovery.");
-		if (win) win.webContents.send('discoveredProducts', products);
+	if(!browser) { return; }
+
+	browser.stop();
+	products = {};
+	bonjourProductCount = 0;
+
+	console.log("Stopping discovery.");
+
+	if (win) {
+		win.webContents.send('discoveredProducts', products);
 	}
 }
 
-let products = {};
+let products: Record<string, Service> = {};
 let bonjourProductCount = 0;
 
-function discoveryEvent(event: string, service: { fullname: string | number; addresses: any; txt: any; }) {
+function discoveryEvent(event: string, service: Service) {
 	if (debug) console.log(event, new Date(Date.now()).toLocaleString(), service.fullname, service.addresses, service.txt);
 	if (event == "up" || event == "down") {
-		let list = browser.list();
+		let list = browser?.list() ?? [];
 		//list = [];
 		if (list) refreshProducts(list);
 		bonjourProductCount = (list) ? list.length : 0;
@@ -303,25 +322,31 @@ function discoveryEvent(event: string, service: { fullname: string | number; add
 	if (event == "changed") {
 		if (products[service.fullname]) {
 			setProductInfo(service);
-			win.webContents.send('updateProduct', products[service.fullname]);
+			win?.webContents.send('updateProduct', products[service.fullname]);
 		}
 	}
 	
 }
 
-function refreshProducts(services?: any[]) {
+function refreshProducts(services?: Service[] | null) {
 	if (services == null) {
 		services = [];
-		if (browser) services = browser.list();
+		if (browser) {
+			services = browser.list();
+		}
 	}
-	if (services.length == 0 && manuallyDiscoveredProduct) services.push(manuallyDiscoveredProduct);
+
+	if (services.length == 0 && manuallyDiscoveredProduct) {
+		services.push(manuallyDiscoveredProduct);
+	}
+
 	if (services) {
 		// Find out which services have been added.
 		for (let s = 0; s < services.length; s++) {
 			if (!products[services[s].fullname]) {
 				setProductInfo(services[s]); // Adds product.
 				//console.log(products[services[s].fullname].addresses);
-				win.webContents.send('addProduct', products[services[s].fullname]);
+				win?.webContents.send('addProduct', products[services[s].fullname]);
 			}
 		}
 		
@@ -332,14 +357,14 @@ function refreshProducts(services?: any[]) {
 				if (services[s].fullname == fullname) serviceFound = s;
 			}
 			if (serviceFound == -1) {
-				win.webContents.send('removeProduct', products[fullname]);
+				win?.webContents.send('removeProduct', products[fullname]);
 				delete products[fullname]; // Removes product.
 			}
 		}
 	}
 }
 
-function setProductInfo(service: { fullname: any; addresses: any; txt: any; host?: any; port?: any; name?: any; manual?: any; }) {
+function setProductInfo(service: Service) {
 	let modelID = null;
 	let modelName = null;
 	let systemID = null;
@@ -380,10 +405,12 @@ function setProductInfo(service: { fullname: any; addresses: any; txt: any; host
 		productImage: productImage,
 		systemID: systemID,
 		systemStatus: systemStatus,
-		boundTo: undefined,
+		boundTo: undefined as string | undefined,
 		manual: false,
+		txt: {}
 	};
 
+	// @note : auto-magic bind (jack button => reflect by bolt on UI)
 	if(currentRouting && currentRouting.from === service.name) {
 		product.boundTo = currentRouting.to;
 	} else if(currentRouting && currentRouting.to === service.name) {
@@ -398,7 +425,7 @@ function setProductInfo(service: { fullname: any; addresses: any; txt: any; host
 }
 
 ipcMain.on("getAllProducts", (event, arg) => {
-	win.webContents.send('discoveredProducts', products);
+	win?.webContents.send('discoveredProducts', products);
 });
 
 ipcMain.on("refreshProducts", (event, arg) => {
@@ -406,20 +433,25 @@ ipcMain.on("refreshProducts", (event, arg) => {
 	startManualDiscovery();
 });
 
-function findProduct(name) {
-	return products[Object.keys(products).find(key => {
+function findProduct(name: string) {
+	const productKey = Object.keys(products).find(key => {
 		const product = products[key];
 		if(product.name === name) {
 			return key;
 		}
 
 		return null;
-	})];
+	});
+
+	return productKey && products[productKey] ? products[productKey] : null;
 }
 
-let clientChannel = null;
-let sshInstance = null;
-let currentRouting = null;
+let clientChannel: ClientChannel | null = null;
+let sshInstance: NodeSSH | null = null;
+let currentRouting: {
+	from: string;
+	to: string;
+} | null = null;
 async function connectSSH() {
 	function cleanup () {
 		sshInstance?.dispose();
@@ -451,18 +483,32 @@ async function connectSSH() {
 
 	const audioParams = `${bitrate} ${codec} ${samplingRate} ${channels}`;
 
+	const sourceLocalIP = source?.addresses[0] ?? null;
+	
+	if(!sourceLocalIP) {
+		console.error('Can\'t find source HifiBerry');
+		return;
+	}
+
+	const destinationLocalIP = destination?.addresses[0] ?? null;
+
+	if(!destinationLocalIP) {
+		console.error('Can\'t find destination HifiBerry');
+		return;
+	}
+
 	await sshInstance.connect({
-		host: source.addresses[0],
+		host: sourceLocalIP,
 		username: 'root',
 		password: 'hifiberry'
 	});
 
 	// @todo : Add settings to create this command dynamically.
-	const linkCommand = `arecord -D plughw:0,0 ${audioParams} | ssh -C root@${destination.addresses[0]} -i rcaberry aplay ${audioParams}`;
+	const linkCommand = `arecord -D plughw:0,0 ${audioParams} | ssh -C root@${destinationLocalIP} -i rcaberry aplay ${audioParams}`;
 	const killCommand = 'killall arecord';
 
 	const result = await sshInstance.execCommand(linkCommand, {
-		pty: true,
+		// pty: true,
 		onChannel: (client) => {
 			clientChannel = client;
 			refreshProducts();
@@ -486,29 +532,39 @@ ipcMain.on("bindAuxToAMP", (event, arg) => {
 	connectSSH();
 });
 
-let manuallyDiscoveredProduct = null;
-let manualDiscoveryInterval: string | number | NodeJS.Timeout;
+let manuallyDiscoveredProduct: Service | null = null;
+let manualDiscoveryInterval: NodeJS.Timer | null = null;
 let manualDiscoveryAddress = "10.0.0.1";
+
 async function discoverProductAtAddress(address: string): Promise<void> {
 	if (bonjourProductCount == 0) {
-		fetch('http://'+address+'/product-information/discovery').then(res => {
-			if (res.status == 200) {
-				res.json().then(body => {
-					const service = {name: body.name, fullname: body.name+"._"+body.serviceType+"._tcp.local.", port: body.advertisePort, addresses: [address], host: address, txt: body.txtRecord, manual: true};
-					if (!manuallyDiscoveredProduct) {
-						manuallyDiscoveredProduct = service;
-						refreshProducts();
-					}
-				});
+		try {
+			const discovery = await fetch('http://'+address+'/product-information/discovery');
+			if(discovery.ok) {
+				const body = await discovery.json();
+				const service = {
+					name: body.name, 
+					fullname: body.name+"._"+body.serviceType+"._tcp.local.", 
+					port: body.advertisePort, 
+					addresses: [address], 
+					host: address, 
+					txt: body.txtRecord, 
+					manual: true
+				};
+	
+				if (!manuallyDiscoveredProduct) {
+					manuallyDiscoveredProduct = service;
+					refreshProducts();
+				}
 			} else {
 				if (manuallyDiscoveredProduct != null) {
 					manuallyDiscoveredProduct = null;
 					refreshProducts();
 				}
 			}
-		}).catch(err => {
-			console.error("Manual product discovery unsuccessful")
-		});
+		} catch (err) {
+			console.error("Manual product discovery unsuccessful");
+		}
 	} else {
 		if (manuallyDiscoveredProduct != null) {
 			manuallyDiscoveredProduct = null;
@@ -519,7 +575,9 @@ async function discoverProductAtAddress(address: string): Promise<void> {
 
 function startManualDiscovery(): void {
 	manuallyDiscoveredProduct = null;
-	clearInterval(manualDiscoveryInterval);
+
+	stopManualDiscovery();
+
 	discoverProductAtAddress(manualDiscoveryAddress);
 	manualDiscoveryInterval = setInterval(function() {
 		discoverProductAtAddress(manualDiscoveryAddress);
@@ -527,10 +585,14 @@ function startManualDiscovery(): void {
 }
 
 function stopManualDiscovery(): void {
+	if(!manualDiscoveryInterval) {
+		return;
+	}
+
 	clearInterval(manualDiscoveryInterval);
 }
 
-let ipCheckInterval: string | number | NodeJS.Timeout;
+let ipCheckInterval: NodeJS.Timer | null = null;
 function startCheckingIPAddress(): void {
 	hasIPChanged();
 	ipCheckInterval = setInterval(function() {
@@ -548,9 +610,12 @@ function hasIPChanged(): boolean {
 	let ifaces = networkInterfaces();
 	let newIPs = []
 	for (let iface in ifaces) {
-		for (let i = 0; i < ifaces[iface].length; i++) {
-			if (ifaces[iface][i].family == "IPv4") {
-				newIPs.push(ifaces[iface][i].address);
+		const currentInterface = ifaces[iface];
+		if(!currentInterface) { continue; }
+
+		for (let i = 0; i < currentInterface.length ?? 0; i++) {
+			if (currentInterface[i].family == "IPv4") {
+				newIPs.push(currentInterface[i].address);
 			}
 		}
 	}

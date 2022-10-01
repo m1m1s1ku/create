@@ -16,6 +16,7 @@
  "author": "",
  "license": "MIT",
  "devDependencies": {
+  "@types/ssh2": "^1.11.6",
   "electron": "^20.2.0",
   "electron-builder": "^23.3.3"
  },
@@ -27,6 +28,7 @@
   "electron-window-state": "^5.0.3",
   "multicast-dns": "^7.2.5",
   "node-ssh": "^13.0.0",
+  "ssh2": "^1.11.0",
   "sudo-prompt": "^9.2.1",
   "tinkerhub-mdns": "^0.5.1",
   "typescript": "^4.8.3"
