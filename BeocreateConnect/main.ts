@@ -176,6 +176,8 @@ export async function bindBerries() {
 	const client = await safeSSHClient(sourceLocalIP, username, password);
 	const isLocked = await isBindingLocked(client);
 
+	const debug = true;
+
 	if(isLocked) {
 		console.warn('Already bound killing');
 		await client.execCommand(`rm ${lockFileName}`);
@@ -201,6 +203,11 @@ export async function bindBerries() {
 		}).catch(async err => {
 			// @note : "normal" error, stopping the current streaming exec.
 			console.warn('Error while executing linkCommand');
+
+			if(debug) {
+				console.error(`verbose: linkCommand err: ${err}`);
+			}
+
 			currentRouting = null;
 			await client.execCommand(`rm ${lockFileName}`);
 			await getCurrentRouting();
