@@ -102,10 +102,8 @@ let currentRouting: {
 } | null = null;
 
 export async function getCurrentRouting() {
-	if(!currentRouting) {
-		currentRouting = defaultRouting;
-		
-		const source = findProduct(currentRouting.from);
+	if(!currentRouting) {		
+		const source = findProduct(defaultRouting.from);
 		const sourceLocalIP = source?.addresses[0] ?? null;
 		
 		if(!sourceLocalIP) {
@@ -117,6 +115,8 @@ export async function getCurrentRouting() {
 		const isLocked = await isBindingLocked(client);
 		if(!isLocked) {
 			currentRouting = null;
+		} else {
+			currentRouting = defaultRouting;
 		}
 	}
 
