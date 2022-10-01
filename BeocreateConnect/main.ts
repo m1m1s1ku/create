@@ -523,35 +523,45 @@ async function connectSSH() {
 		return;
 	}
 
+	// @todo : Add settings to create this command dynamically.
+	const linkCommand = `arecord -D plughw:0,0 ${audioParams} | ssh -C root@${destinationLocalIP} -i rcaberry aplay ${audioParams}`;
+	const killCommand = 'killall arecord | rm connected.lock';
+	const lockCommand = `touch connected.lock | echo ${destination?.name} > connected.lock`;
+
 	await sshInstance.connect({
 		host: sourceLocalIP,
 		username: 'root',
 		password: 'hifiberry'
 	});
 
-	// @todo : Add settings to create this command dynamically.
-	const linkCommand = `arecord -D plughw:0,0 ${audioParams} | ssh -C root@${destinationLocalIP} -i rcaberry aplay ${audioParams}`;
-	const killCommand = 'killall arecord';
+	const isConnected = await sshInstance.execCommand(`cat connected.lock`);
+	if(isConnected.stdout) {
+		console.warn('Already connected to', isConnected.stdout, 'killing');
+		await sshInstance.execCommand(killCommand);
+	} else {
+		await sshInstance.execCommand(lockCommand);
 
-	const result = await sshInstance.execCommand(linkCommand, {
-		// pty: true,
-		onChannel: (client) => {
-			clientChannel = client;
+		const result = await sshInstance.execCommand(linkCommand, {
+			// pty: true,
+			onChannel: (client) => {
+				clientChannel = client;
+				refreshProducts();
+			}
+		});
+
+		// @note : enforce killall on error (enable switch aspect of the button)
+		if(result.stderr) {
+			await sshInstance?.execCommand(killCommand);
+
+			cleanup();
+			refreshProducts();
+		} else {
 			refreshProducts();
 		}
-	});
-
-	// @note : enforce killall on error (enable switch aspect of the button)
-	if(result.stderr) {
-		await sshInstance?.execCommand(killCommand);
-
-		cleanup();
-		refreshProducts();
-	} else {
-		refreshProducts();
+		console.log('STDOUT: ' + result.stdout);
+		console.log('STDERR: ' + result.stderr);
 	}
-	console.log('STDOUT: ' + result.stdout);
-	console.log('STDERR: ' + result.stderr);
+
 }
 
 ipcMain.on("bindAuxToAMP", (event, arg) => {
