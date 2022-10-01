@@ -150,8 +150,11 @@ export async function isBindingLocked(client: NodeSSH) {
 	const isLockedCommand = `cat ${lockFileName}`;
 
 	const isLocked = await client.execCommand(isLockedCommand);
+	if(isLocked.stderr) {
+		return false;
+	}
 
-	if(isLocked.stdout) {
+	if(isLocked.stdout.length !== 0) {
 		return true;
 	}
 
@@ -179,7 +182,7 @@ export async function bindBerries() {
 	}
 
 	const linkCommand = `arecord -D plughw:0,0 ${audioParams} | ssh -C ${username}@${destinationLocalIP} -i ${sshKeyFileName} aplay ${audioParams}`;
-	const killCommand = `killall arecord | rm ${lockFileName}`;
+	const killCommand = `killall arecord`;
 	const lockCommand = `touch ${lockFileName} | echo ${destination?.name} > ${lockFileName}`;
 
 	const client = await safeSSHClient(sourceLocalIP, username, password);
@@ -187,6 +190,7 @@ export async function bindBerries() {
 
 	if(isLocked) {
 		console.warn('Already bound killing');
+		await client.execCommand(`rm ${lockFileName}`);
 		await client.execCommand(killCommand);
 
 		currentRouting = null;
