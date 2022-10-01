@@ -18,14 +18,14 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.*/
 
 // BEOCREATE CONNECT
-const { app, Menu, BrowserWindow, ipcMain, nativeTheme, systemPreferences, shell } = require('electron')
+import { app, Menu, BrowserWindow, ipcMain, nativeTheme, systemPreferences, shell } from 'electron';
 
-const windowStateKeeper = require('electron-window-state');
+import windowStateKeeper from 'electron-window-state';
 
-const { Browser, tcp } = require("dnssd2")
-const { networkInterfaces } = require("os");
+import { Browser, tcp } from "dnssd2";
+import { networkInterfaces } from "os";
 
-const { NodeSSH } = require('node-ssh')
+import { NodeSSH } from 'node-ssh';
 
 let debug = false;
 let activeWindow = true;
@@ -156,8 +156,6 @@ function createWindow () {
 	  hasFrame = false;
 	}
 	win = new BrowserWindow({
-		nodeIntegration: true,
-		contextIsolation: false,
 		x: mainWindowState.x,
 		y: mainWindowState.y,
 		width: mainWindowState.width,
@@ -556,7 +554,7 @@ function hasIPChanged(): boolean {
 			}
 		}
 	}
-	if (equals(newIPs)) {
+	if (equals(oldIPs, newIPs)) {
 		return false;
 	} else {
 		oldIPs = newIPs;
@@ -564,23 +562,26 @@ function hasIPChanged(): boolean {
 	}
 }
 
-function equals(array: unknown[]): boolean {
-    if (!array){
+function equals(arrA: (unknown|unknown[])[], arrB: (unknown | unknown[])[]): boolean {
+    if (!arrA){
 		return false;
 	}
 
-    if (this.length != array.length) {
+    if (arrA.length != arrB?.length) {
         return false;
 	}
 
-    for (let i = 0, l=this.length; i < l; i++) {
-        if (this[i] instanceof Array && array[i] instanceof Array) {
-            if (!this[i].equals(array[i])) {
-                return false;
+    for (let i = 0, l=arrA.length; i < l; i++) {
+		const item = arrA[i];
+		const itemB = arrB[i];
+
+		if(item instanceof Array &&  itemB instanceof Array) {
+			if(!equals(item, itemB)) {
+				return false;
 			}
-        } else if (this[i] != array[i]) {
-            return false;
-        }
+		} else if (item != itemB) {
+			return false;
+		}
     }
 
     return true;
