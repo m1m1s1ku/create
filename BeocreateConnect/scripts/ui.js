@@ -23,13 +23,12 @@ SOFTWARE.
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
 // BEOCREATE CONNECT
-const inElectron = true;
-let debug = true;
-
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { ipcRenderer, shell, remote } = require('electron');
 const ipc = ipcRenderer;
 
+const inElectron = true;
+let debug = true;
 let darkAppearance = false;
 let windows = false;
 
@@ -396,9 +395,7 @@ function toggle(inElement, outElement) {
 // Receives discovered products from the app.
 let products = {};
 
-let selectedProduct;
 let connectOnDiscovery = {identifier: null, systemName: null};
-let refreshing = false;
 
 if (ipc) {
 	setTimeout(function() {
@@ -584,7 +581,6 @@ function configureProduct(fullname, fromDiscovery) {
 		showMenuButton(true);
 		connectOnDiscovery = {identifier: null, productName: null};
 		const productIP = products[fullname].addresses[0]+":"+products[fullname].port;
-		selectedProduct = JSON.parse(JSON.stringify(products[fullname]));
 		const src = document.querySelector('#product-view').getAttribute('src');
 		if (!src || fromDiscovery || src.indexOf("http://"+productIP+"/") == -1 || productConnectionStatus == "disconnected") {
 			/*
