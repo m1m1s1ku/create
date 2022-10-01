@@ -3,9 +3,9 @@ import windowStateKeeper from "electron-window-state";
 import { networkInterfaces } from "os";
 
 import { 
-    connectSSH,
+    bindBerries,
+    closeSSHClient,
     currentRouting,
-    sshInstance, 
 } from "./main";
 import { MenuItemRebrand, Product, Service } from "./beocreate-connect";
 import { browser, manuallyDiscoveredProduct, products, startDiscovery, startManualDiscovery, stopDiscovery, stopManualDiscovery } from "./network";
@@ -121,9 +121,7 @@ export function createWindow(): BrowserWindow {
 	  }
 
 	  stopDiscovery();
-	  if(sshInstance) {
-		sshInstance.dispose();
-	  }
+      closeSSHClient();
     });
     
     win.on('focus', () => {
@@ -180,7 +178,7 @@ export default function defineMenu(win: BrowserWindow) {
             { 
                 label: 'Bind Aux to Amp',
                 click () { 
-                    connectSSH(); 
+                    bindBerries(); 
                 }
             },
           ]

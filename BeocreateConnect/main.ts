@@ -80,44 +80,74 @@ function findProduct(name: string) {
 	return productKey && products[productKey] ? products[productKey] : null;
 }
 
-export let clientChannel: ClientChannel | null = null;
-export let sshInstance: NodeSSH | null = null;
+// @todo : Add settings to change this easily
+const bitrate = "-f S24_LE";
+const codec = "-t wav";
+const samplingRate = "-r 60000";
+const channels = "-c2"
+
+const username = 'root';
+const password = 'hifiberry';
+const sshKeyFileName = 'rcaberry';
+const lockFileName = 'connected.lock';
+
+let clientChannel: ClientChannel | null = null;
+let sshInstance: NodeSSH | null = null;
 export let currentRouting: {
 	from: string;
 	to: string;
 } | null = null;
 
-export async function connectSSH() {
-	function cleanup () {
-		sshInstance?.dispose();
+export async function closeSSHClient() {
+	if(!sshInstance) { return; }
+
+	sshInstance.dispose();
+}
+
+export async function safeSSHClient(sourceIP: string, username: string, password: string): Promise<NodeSSH> {
+	if(!sshInstance || !sshInstance.isConnected()){
 		clientChannel?.close();
-		clientChannel = null;
-		sshInstance = null;
-		currentRouting = null;
-		onRefreshProducts();
+		sshInstance?.dispose();
+		sshInstance = new NodeSSH();
 	}
 
-	if(sshInstance) {
-		cleanup();
-		return;
+	await sshInstance.connect({
+		host: sourceIP,
+		username,
+		password
+	});
+
+	return sshInstance;
+}
+
+export async function isBindingLocked(client: NodeSSH) {
+	const lockFileName = 'connected.lock';
+	const isLockedCommand = `cat ${lockFileName}`;
+
+	const isLocked = await client.execCommand(isLockedCommand);
+
+	if(isLocked.stdout) {
+		currentRouting = {
+			from: 'AuxBerry',
+			to: 'HiFiBerry',
+		};
+
+		return true;
 	}
 
-	sshInstance = new NodeSSH();
+	return false;
+}
 
+export async function bindBerries() {
 	currentRouting = {
 		from: 'AuxBerry',
 		to: 'HiFiBerry',
 	};
 
+	const audioParams = `${bitrate} ${codec} ${samplingRate} ${channels}`;
+
 	const source = findProduct(currentRouting.from);
 	const destination = findProduct(currentRouting.to);
-
-	const bitrate = "-f S24_LE";
-	const codec = "-t wav";
-	const samplingRate = "-r 60000";
-	const channels = "-c2"
-
-	const audioParams = `${bitrate} ${codec} ${samplingRate} ${channels}`;
 
 	const sourceLocalIP = source?.addresses[0] ?? null;
 	
@@ -133,32 +163,20 @@ export async function connectSSH() {
 		return;
 	}
 
-	// @todo : Add settings to create this command dynamically.
-	const username = 'root';
-	const password = 'hifiberry';
-	const sshKeyFileName = 'rcaberry';
-	const lockFileName = 'connected.lock';
-
 	const linkCommand = `arecord -D plughw:0,0 ${audioParams} | ssh -C ${username}@${destinationLocalIP} -i ${sshKeyFileName} aplay ${audioParams}`;
 	const killCommand = `killall arecord | rm ${lockFileName}`;
 	const lockCommand = `touch ${lockFileName} | echo ${destination?.name} > ${lockFileName}`;
-	const isLockedCommand = `cat ${lockFileName}`;
 
-	await sshInstance.connect({
-		host: sourceLocalIP,
-		username,
-		password
-	});
+	const client = await safeSSHClient(sourceLocalIP, username, password);
+	const isLocked = await isBindingLocked(client);
 
-	const isLocked = await sshInstance.execCommand(isLockedCommand);
-	if(isLocked.stdout) {
-		console.warn('Already connected to', isLocked.stdout, 'killing');
-		await sshInstance.execCommand(killCommand);
-		cleanup();
+	if(isLocked) {
+		console.warn('Already bound killing');
+		await client.execCommand(killCommand);
 	} else {
-		await sshInstance.execCommand(lockCommand);
+		await client.execCommand(lockCommand);
 		console.warn('Start binding to ', destination?.name, 'from', source?.name);
-		await sshInstance.exec(linkCommand, [], {
+		await client.exec(linkCommand, [], {
 			onStdout(chunk) {
 				console.log('out:', chunk.toString('utf8'));
 				onRefreshProducts();
@@ -175,5 +193,5 @@ export async function connectSSH() {
 }
 
 ipcMain.on("bindAuxToAMP", (event, arg) => {
-	connectSSH();
+	bindBerries();
 });
