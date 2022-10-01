@@ -22,7 +22,6 @@ SOFTWARE.
 import { app, BrowserWindow, ipcMain, nativeTheme, systemPreferences } from 'electron';
 
 import { NodeSSH } from 'node-ssh';
-import { ClientChannel } from 'ssh2';
 
 import { createWindow } from './utils';
 import { 
@@ -93,7 +92,6 @@ const password = 'hifiberry';
 const sshKeyFileName = 'rcaberry';
 const lockFileName = 'connected.lock';
 
-let clientChannel: ClientChannel | null = null;
 let sshInstance: NodeSSH | null = null;
 
 let currentRouting: {
@@ -131,7 +129,6 @@ export async function closeSSHClient() {
 
 export async function safeSSHClient(sourceIP: string, username: string, password: string): Promise<NodeSSH> {
 	if(!sshInstance || !sshInstance.isConnected()){
-		clientChannel?.close();
 		sshInstance?.dispose();
 		sshInstance = new NodeSSH();
 	}
@@ -167,18 +164,10 @@ export async function bindBerries() {
 	const destination = findProduct(defaultRouting.to);
 
 	const sourceLocalIP = source?.addresses[0] ?? null;
-	
-	if(!sourceLocalIP) {
-		console.error('Can\'t find source HifiBerry');
-		return;
-	}
-
 	const destinationLocalIP = destination?.addresses[0] ?? null;
 
-	if(!destinationLocalIP) {
-		console.error('Can\'t find destination HifiBerry');
-		return;
-	}
+	// Don't know where to bind. ;)
+	if(!sourceLocalIP || !destinationLocalIP) { return; }
 
 	const linkCommand = `arecord -D plughw:0,0 ${audioParams} | ssh -C ${username}@${destinationLocalIP} -i ${sshKeyFileName} aplay ${audioParams}`;
 	const killCommand = `killall arecord`;
@@ -198,28 +187,24 @@ export async function bindBerries() {
 	} else {
 		await client.execCommand(lockCommand);
 		console.warn('Start binding to ', destination?.name, 'from', source?.name);
-		
-		try {
-			await Promise.all([
-				client.exec(linkCommand, [], {
-					onStdout(chunk) {
-						console.log('out:', chunk.toString('utf8'));
-						onRefreshProducts();
-					},
-					onStderr(chunk) {
-						console.log('err:', chunk.toString('utf8'));
-						onRefreshProducts();
-					},
-					onChannel: (client) => {
-						clientChannel = client;
-					}
-				})
-			]);
-		} catch (err) {
+
+		// @note : Floating promise, because will never yield a result except if broken pipe / execCommand kill
+		client.exec(linkCommand, [], {
+			onStdout(chunk) {
+				console.log('out:', chunk.toString('utf8'));
+				onRefreshProducts();
+			},
+			onStderr(chunk) {
+				console.log('err:', chunk.toString('utf8'));
+				onRefreshProducts();
+			}
+		}).catch(async err => {
+			// @note : "normal" error, stopping the current streaming exec.
 			console.warn('Error while executing linkCommand');
 			currentRouting = null;
 			await client.execCommand(`rm ${lockFileName}`);
 			await getCurrentRouting();
-		}
+		});
+		console.warn('executed linkComand');
 	}
 }
