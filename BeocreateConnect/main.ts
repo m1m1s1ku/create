@@ -589,7 +589,7 @@ async function discoverProductAtAddress(address: string): Promise<void> {
 				}
 			}
 		} catch (err) {
-			console.error("Manual product discovery unsuccessful");
+			console.error("Manual product discovery unsuccessful", err instanceof Error ? err.message : err);
 		}
 	} else {
 		if (manuallyDiscoveredProduct != null) {
