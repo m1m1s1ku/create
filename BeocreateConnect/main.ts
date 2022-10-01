@@ -465,9 +465,7 @@ async function connectSSH() {
 		pty: true,
 		onChannel: (client) => {
 			clientChannel = client;
-			setTimeout(() => {
-				refreshProducts();
-			}, 500);
+			refreshProducts();
 		}
 	});
 
@@ -478,9 +476,7 @@ async function connectSSH() {
 			refreshProducts();
 		});
 	} else {
-		setTimeout(() => {
-			refreshProducts();
-		}, 500);
+		refreshProducts();
 	}
 	console.log('STDOUT: ' + result.stdout);
 	console.log('STDERR: ' + result.stderr);
