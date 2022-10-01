@@ -188,21 +188,35 @@ export async function bindBerries() {
 	if(isLocked) {
 		console.warn('Already bound killing');
 		await client.execCommand(killCommand);
+
+		currentRouting = null;
+
+		await getCurrentRouting();
 	} else {
 		await client.execCommand(lockCommand);
 		console.warn('Start binding to ', destination?.name, 'from', source?.name);
-		await client.exec(linkCommand, [], {
-			onStdout(chunk) {
-				console.log('out:', chunk.toString('utf8'));
-				onRefreshProducts();
-			},
-			onStderr(chunk) {
-				console.log('err:', chunk.toString('utf8'));
-				onRefreshProducts();
-			},
-			onChannel: (client) => {
-				clientChannel = client;
-			}
-		});
+		
+		try {
+			await Promise.all([
+				client.exec(linkCommand, [], {
+					onStdout(chunk) {
+						console.log('out:', chunk.toString('utf8'));
+						onRefreshProducts();
+					},
+					onStderr(chunk) {
+						console.log('err:', chunk.toString('utf8'));
+						onRefreshProducts();
+					},
+					onChannel: (client) => {
+						clientChannel = client;
+					}
+				})
+			]);
+		} catch (err) {
+			console.warn('Error while executing linkCommand');
+			currentRouting = null;
+			await client.execCommand(`rm ${lockFileName}`);
+			await getCurrentRouting();
+		}
 	}
 }
